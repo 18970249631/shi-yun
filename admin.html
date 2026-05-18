@@ -1,0 +1,2618 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>史韵 · 管理后台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #c94043;
+            --primary-dark: #a63032;
+            --bg-dark: #1a1a1a;
+            --bg-card: #252525;
+            --bg-hover: #2a2a2a;
+            --text-primary: #faf8f5;
+            --text-secondary: #999;
+            --border: #333;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --info: #2196f3;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+        
+        /* 侧边栏 */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: linear-gradient(180deg, #1f1f1f 0%, #171717 100%);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+        
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+        
+        .sidebar-logo .logo-char {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 20px;
+            font-weight: 700;
+        }
+        
+        .sidebar-logo .logo-text {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .sidebar-logo .logo-sub {
+            font-size: 11px;
+            color: var(--text-secondary);
+            display: block;
+            margin-top: 2px;
+        }
+        
+        .sidebar-nav {
+            flex: 1;
+            padding: 16px 12px;
+            overflow-y: auto;
+        }
+        
+        .nav-section {
+            margin-bottom: 24px;
+        }
+        
+        .nav-section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            padding: 8px 12px;
+            letter-spacing: 1px;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            margin-bottom: 4px;
+        }
+        
+        .nav-item:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .nav-item svg {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+        
+        .nav-item .badge {
+            margin-left: auto;
+            background: var(--primary);
+            color: white;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        
+        /* 主内容区 */
+        .main {
+            margin-left: 260px;
+            min-height: 100vh;
+        }
+        
+        .topbar {
+            background: rgba(26, 26, 26, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        
+        .topbar h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .topbar-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--bg-hover);
+        }
+        
+        .content {
+            padding: 32px;
+        }
+        
+        /* 统计卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid var(--border);
+        }
+        
+        .stat-card .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+        
+        .stat-card .stat-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+        
+        .stat-card .stat-icon.pv { background: rgba(33, 150, 243, 0.15); color: var(--info); }
+        .stat-card .stat-icon.uv { background: rgba(76, 175, 80, 0.15); color: var(--success); }
+        .stat-card .stat-icon.article { background: rgba(201, 64, 67, 0.15); color: var(--primary); }
+        .stat-card .stat-icon.audio { background: rgba(255, 152, 0, 0.15); color: var(--warning); }
+        
+        .stat-card .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .stat-card .stat-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .stat-card .stat-change {
+            font-size: 12px;
+            margin-top: 8px;
+        }
+        
+        .stat-change.up { color: var(--success); }
+        .stat-change.down { color: var(--primary); }
+        
+        /* 面板 */
+        .panel {
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+        
+        .panel-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .panel-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .panel-body {
+            padding: 24px;
+        }
+        
+        /* 表格 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .data-table th {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        
+        .data-table tr:hover td {
+            background: var(--bg-hover);
+        }
+        
+        .article-title-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .article-thumb {
+            width: 48px;
+            height: 48px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: var(--bg-dark);
+        }
+        
+        .weight-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            background: rgba(201, 64, 67, 0.15);
+            color: var(--primary);
+        }
+        
+        .weight-badge.hot {
+            background: rgba(255, 152, 0, 0.15);
+            color: var(--warning);
+        }
+        
+        .weight-badge.top {
+            background: rgba(76, 175, 80, 0.15);
+            color: var(--success);
+        }
+        
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .status-badge.published { background: rgba(76, 175, 80, 0.15); color: var(--success); }
+        .status-badge.draft { background: rgba(255, 152, 0, 0.15); color: var(--warning); }
+        .status-badge.scheduled { background: rgba(33, 150, 243, 0.15); color: var(--info); }
+        
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: none;
+            background: var(--bg-dark);
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .action-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* 表单 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        textarea.form-input {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        /* 文件上传 */
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .upload-zone:hover {
+            border-color: var(--primary);
+            background: rgba(201, 64, 67, 0.05);
+        }
+        
+        .upload-zone svg {
+            width: 48px;
+            height: 48px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+        
+        .upload-zone h4 {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        
+        .upload-zone p {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+        
+        /* 标签页 */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: all 0.2s;
+        }
+        
+        .tab:hover {
+            color: var(--text-primary);
+        }
+        
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* 广告位 */
+        .ad-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .ad-card {
+            background: var(--bg-dark);
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid var(--border);
+        }
+        
+        .ad-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .ad-card h4 {
+            font-size: 14px;
+        }
+        
+        .ad-placeholder {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+            border-radius: 8px;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+        
+        .ad-stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .ad-stat {
+            text-align: center;
+        }
+        
+        .ad-stat .value {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .ad-stat .label {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        
+        /* 读者画像 */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+        
+        .profile-card {
+            background: var(--bg-dark);
+            border-radius: 10px;
+            padding: 24px;
+        }
+        
+        .profile-card h4 {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+        
+        .bar-chart {
+            space-y: 12px;
+        }
+        
+        .bar-item {
+            margin-bottom: 12px;
+        }
+        
+        .bar-item .label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+        
+        .bar-item .bar {
+            height: 8px;
+            background: var(--bg-card);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .bar-item .bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .bar-fill.primary { background: var(--primary); }
+
+        /* 分发选项样式 */
+        .distribute-option {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background: var(--bg-dark);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid var(--border);
+        }
+
+        .distribute-option:hover {
+            border-color: var(--primary);
+        }
+
+        .distribute-option input {
+            width: 20px;
+            height: 20px;
+            margin-right: 16px;
+        }
+
+        .distribute-platform {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .platform-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .platform-name {
+            font-weight: 500;
+        }
+
+        /* 提现记录样式 */
+        .withdrawal-record {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .withdrawal-record:last-child {
+            border-bottom: none;
+        }
+
+        .withdrawal-info {
+            flex: 1;
+        }
+
+        .withdrawal-amount {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .withdrawal-status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .withdrawal-status.pending {
+            background: rgba(255, 152, 0, 0.15);
+            color: var(--warning);
+        }
+
+        .withdrawal-status.completed {
+            background: rgba(76, 175, 80, 0.15);
+            color: var(--success);
+        }
+
+        .withdrawal-status.rejected {
+            background: rgba(201, 64, 67, 0.15);
+            color: var(--primary);
+        }
+        .bar-fill.success { background: var(--success); }
+        .bar-fill.warning { background: var(--warning); }
+        .bar-fill.info { background: var(--info); }
+        
+        /* 模态框 */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal {
+            background: var(--bg-card);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .modal-header h3 {
+            font-size: 18px;
+        }
+        
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: none;
+            background: var(--bg-dark);
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-close:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .modal-body {
+            padding: 24px;
+        }
+        
+        .modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 2000;
+        }
+        
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .toast.success { border-left: 3px solid var(--success); }
+        .toast.error { border-left: 3px solid var(--primary); }
+        .toast.warning { border-left: 3px solid var(--warning); }
+        
+        /* 图表 */
+        .chart-container {
+            position: relative;
+            height: 250px;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main {
+                margin-left: 0;
+            }
+        }
+        
+        /* 列表样式 */
+        .list-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .list-item:last-child {
+            border-bottom: none;
+        }
+        
+        .list-item-thumb {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            background: var(--bg-dark);
+            margin-right: 16px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+        }
+        
+        .list-item-content {
+            flex: 1;
+        }
+        
+        .list-item-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .list-item-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        /* 流量来源 */
+        .traffic-sources {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+        
+        .traffic-tag {
+            padding: 6px 12px;
+            background: var(--bg-dark);
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        
+        /* 热门文章 */
+        .hot-articles {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .hot-article-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-dark);
+            border-radius: 8px;
+        }
+        
+        .hot-rank {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .hot-rank.top3 {
+            background: var(--warning);
+        }
+
+        .hot-article-info {
+            flex: 1;
+        }
+
+        .hot-article-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .hot-article-stats {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* ============================================
+           管理后台响应式适配
+           ============================================ */
+
+        /* 平板横屏 */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main {
+                margin-left: 0;
+            }
+            #menuBtn {
+                display: flex !important;
+            }
+            .topbar {
+                padding: 12px 20px;
+            }
+            .content {
+                padding: 20px;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+            }
+            .stat-card {
+                padding: 16px;
+            }
+            .stat-card .stat-value {
+                font-size: 26px;
+            }
+        }
+
+        /* 平板竖屏 / 大手机 */
+        @media (max-width: 768px) {
+            .topbar h1 {
+                font-size: 18px;
+            }
+            .btn {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+            .topbar-actions .btn span {
+                display: none;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .panel {
+                margin-bottom: 16px;
+            }
+            .panel-header {
+                padding: 16px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            .panel-body {
+                padding: 16px;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            .data-table {
+                display: block;
+                overflow-x: auto;
+            }
+            .data-table th,
+            .data-table td {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+            .article-title-cell {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            .action-btns {
+                flex-wrap: wrap;
+            }
+            .ad-grid {
+                grid-template-columns: 1fr;
+            }
+            .profile-grid {
+                grid-template-columns: 1fr;
+            }
+            .tabs {
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            .tab {
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+        }
+
+        /* 大手机横屏 */
+        @media (max-width: 575px) {
+            .content {
+                padding: 12px;
+            }
+            .stat-card {
+                padding: 14px;
+            }
+            .stat-card .stat-icon {
+                width: 40px;
+                height: 40px;
+            }
+            .stat-card .stat-icon svg {
+                width: 20px;
+                height: 20px;
+            }
+            .stat-card .stat-value {
+                font-size: 24px;
+            }
+            .panel-header h2 {
+                font-size: 14px;
+            }
+            .search-input,
+            .form-input {
+                font-size: 13px;
+            }
+            .form-label {
+                font-size: 13px;
+            }
+            .modal {
+                width: 95%;
+                max-height: 85vh;
+            }
+            .modal-header {
+                padding: 16px;
+            }
+            .modal-body {
+                padding: 16px;
+            }
+            .modal-footer {
+                padding: 16px;
+                flex-wrap: wrap;
+            }
+            .modal-footer .btn {
+                flex: 1;
+                justify-content: center;
+            }
+        }
+
+        /* 大手机竖屏 */
+        @media (max-width: 480px) {
+            .topbar {
+                padding: 10px 12px;
+            }
+            .topbar h1 {
+                font-size: 16px;
+            }
+            .topbar-actions {
+                gap: 8px;
+            }
+            .btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            .btn svg {
+                width: 14px;
+                height: 14px;
+            }
+            .content {
+                padding: 10px;
+            }
+            .stats-grid {
+                gap: 10px;
+                margin-bottom: 16px;
+            }
+            .stat-card {
+                padding: 12px;
+            }
+            .stat-card .stat-label {
+                font-size: 12px;
+            }
+            .stat-change {
+                font-size: 11px;
+            }
+            .panel-header {
+                padding: 12px;
+            }
+            .panel-body {
+                padding: 12px;
+            }
+            .ad-grid {
+                gap: 12px;
+            }
+            .ad-card {
+                padding: 14px;
+            }
+            .ad-stats {
+                gap: 12px;
+            }
+            .ad-stat .value {
+                font-size: 14px;
+            }
+            .upload-zone {
+                padding: 24px 16px;
+            }
+            .upload-zone svg {
+                width: 36px;
+                height: 36px;
+            }
+            .form-input {
+                padding: 10px 12px;
+            }
+            textarea.form-input {
+                min-height: 80px;
+            }
+            .modal-body {
+                padding: 12px;
+            }
+            .toast {
+                padding: 12px 14px;
+                margin-bottom: 8px;
+            }
+            .toast-container {
+                top: 12px;
+                right: 12px;
+                left: 12px;
+            }
+        }
+
+        /* 迷你屏幕 */
+        @media (max-width: 375px) {
+            .topbar h1 {
+                font-size: 14px;
+            }
+            .content {
+                padding: 8px;
+            }
+            .panel-header {
+                padding: 10px;
+            }
+            .panel-body {
+                padding: 10px;
+            }
+            .form-group {
+                margin-bottom: 12px;
+            }
+            .modal-header h3 {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏 -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="../index.html" class="sidebar-logo">
+                <span class="logo-char">史</span>
+                <div>
+                    <span class="logo-text">史韵</span>
+                    <span class="logo-sub">管理后台</span>
+                </div>
+            </a>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">数据中心</div>
+                <a class="nav-item active" data-tab="dashboard">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    <span>控制台</span>
+                </a>
+                <a class="nav-item" data-tab="analytics">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+                    <span>数据分析</span>
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">内容管理</div>
+                <a class="nav-item" data-tab="articles">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    <span>文章管理</span>
+                    <span class="badge">10</span>
+                </a>
+                <a class="nav-item" data-tab="audio">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                    <span>音频管理</span>
+                    <span class="badge">3</span>
+                </a>
+                <a class="nav-item" data-tab="upload">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <span>文件上传</span>
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">运营工具</div>
+                <a class="nav-item" data-tab="ads">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                    <span>广告管理</span>
+                </a>
+                <a class="nav-item" data-tab="traffic">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    <span>引流设置</span>
+                </a>
+                <a class="nav-item" data-tab="rewards">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    <span>打赏管理</span>
+                </a>
+                <a class="nav-item" data-tab="spider">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+                    <span>爬虫管理</span>
+                </a>
+                <a class="nav-item" data-tab="stats-mod">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+                    <span>数据修正</span>
+                </a>
+                <a class="nav-item" data-tab="settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <span>系统设置</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- 主内容 -->
+    <main class="main">
+        <header class="topbar">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <button class="action-btn" onclick="toggleSidebar()" style="display: none;" id="menuBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                </button>
+                <h1 id="pageTitle">控制台</h1>
+            </div>
+            <div class="topbar-actions">
+                <span style="font-size: 13px; color: var(--text-secondary);">
+                    2026年5月16日
+                </span>
+                <button class="btn btn-primary" onclick="openArticleModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    新建文章
+                </button>
+            </div>
+        </header>
+
+        <div class="content">
+            <!-- 控制台 -->
+            <div class="tab-content active" id="tab-dashboard">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon pv">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </div>
+                        <div class="stat-value" id="totalPV">12,847</div>
+                        <div class="stat-label">页面浏览量 (PV)</div>
+                        <div class="stat-change up">↑ 12.5% 较上周</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon uv">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        </div>
+                        <div class="stat-value" id="totalUV">3,284</div>
+                        <div class="stat-label">独立访客 (UV)</div>
+                        <div class="stat-change up">↑ 8.2% 较上周</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon article">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        </div>
+                        <div class="stat-value">10</div>
+                        <div class="stat-label">文章总数</div>
+                        <div class="stat-change up">↑ 2 篇本月新增</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon audio">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                        </div>
+                        <div class="stat-value">3</div>
+                        <div class="stat-label">音频数量</div>
+                        <div class="stat-change">平均播放 234 次</div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                                流量趋势
+                            </h2>
+                            <select class="form-input" style="width: auto;" id="trafficRange">
+                                <option value="7">最近7天</option>
+                                <option value="30">最近30天</option>
+                                <option value="90">最近90天</option>
+                            </select>
+                        </div>
+                        <div class="panel-body">
+                            <div class="chart-container" id="trafficChart"></div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                                热门文章
+                            </h2>
+                        </div>
+                        <div class="panel-body">
+                            <div class="hot-articles" id="hotArticles">
+                                <!-- 动态渲染 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 24px;">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>读者设备</h2>
+                        </div>
+                        <div class="panel-body">
+                            <div class="bar-chart">
+                                <div class="bar-item">
+                                    <div class="label"><span>移动端</span><span>62%</span></div>
+                                    <div class="bar"><div class="bar-fill primary" style="width: 62%;"></div></div>
+                                </div>
+                                <div class="bar-item">
+                                    <div class="label"><span>桌面端</span><span>31%</span></div>
+                                    <div class="bar"><div class="bar-fill success" style="width: 31%;"></div></div>
+                                </div>
+                                <div class="bar-item">
+                                    <div class="label"><span>平板</span><span>7%</span></div>
+                                    <div class="bar"><div class="bar-fill warning" style="width: 7%;"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>地域分布</h2>
+                        </div>
+                        <div class="panel-body">
+                            <div class="bar-chart">
+                                <div class="bar-item">
+                                    <div class="label"><span>北京</span><span>18%</span></div>
+                                    <div class="bar"><div class="bar-fill primary" style="width: 18%;"></div></div>
+                                </div>
+                                <div class="bar-item">
+                                    <div class="label"><span>上海</span><span>15%</span></div>
+                                    <div class="bar"><div class="bar-fill success" style="width: 15%;"></div></div>
+                                </div>
+                                <div class="bar-item">
+                                    <div class="label"><span>广东</span><span>22%</span></div>
+                                    <div class="bar"><div class="bar-fill info" style="width: 22%;"></div></div>
+                                </div>
+                                <div class="bar-item">
+                                    <div class="label"><span>浙江</span><span>12%</span></div>
+                                    <div class="bar"><div class="bar-fill warning" style="width: 12%;"></div></div>
+                                </div>
+                                <div class="bar-item">
+                                    <div class="label"><span>其他</span><span>33%</span></div>
+                                    <div class="bar"><div class="bar-fill primary" style="width: 33%;"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>流量来源</h2>
+                        </div>
+                        <div class="panel-body">
+                            <div class="traffic-sources">
+                                <span class="traffic-tag">🔍 搜索引擎 45%</span>
+                                <span class="traffic-tag">📱 社交媒体 28%</span>
+                                <span class="traffic-tag">🔗 直接访问 18%</span>
+                                <span class="traffic-tag">📧 外部链接 9%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 文章管理 -->
+            <div class="tab-content" id="tab-articles">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>文章列表</h2>
+                        <div style="display: flex; gap: 12px;">
+                            <input type="text" class="form-input" placeholder="搜索文章..." style="width: 200px;" id="articleSearch">
+                            <select class="form-input" style="width: 130px;" id="articleFilter">
+                                <option value="">全部分类</option>
+                                <option value="先秦">先秦</option>
+                                <option value="两汉">两汉</option>
+                                <option value="魏晋">魏晋</option>
+                                <option value="唐宋">唐宋</option>
+                                <option value="明清">明清</option>
+                            </select>
+                            <select class="form-input" style="width: 120px;" id="statusFilter">
+                                <option value="">全部状态</option>
+                                <option value="published">已发布</option>
+                                <option value="pending">待审核</option>
+                                <option value="rejected">已拒绝</option>
+                                <option value="draft">草稿</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="panel-body" style="padding: 0;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>文章</th>
+                                    <th>分类</th>
+                                    <th>权重</th>
+                                    <th>状态</th>
+                                    <th>浏览量</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="articleTableBody">
+                                <!-- 动态渲染 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 音频管理 -->
+            <div class="tab-content" id="tab-audio">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>音频列表</h2>
+                        <button class="btn btn-primary" onclick="openAudioModal()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            上传音频
+                        </button>
+                    </div>
+                    <div class="panel-body" style="padding: 0;">
+                        <div id="audioList" style="padding: 16px;">
+                            <!-- 动态渲染 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 文件上传 -->
+            <div class="tab-content" id="tab-upload">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Word / PDF 智能识别</h2>
+                    </div>
+                    <div class="panel-body">
+                        <div class="tabs">
+                            <button class="tab active" data-doc-tab="word">Word 文档</button>
+                            <button class="tab" data-doc-tab="pdf">PDF 文档</button>
+                        </div>
+
+                        <div class="tab-content active" id="doc-tab-word">
+                            <div class="upload-zone" onclick="document.getElementById('wordFile').click()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                                <h4>点击上传 Word 文档</h4>
+                                <p>支持 .docx 格式，自动提取文字内容</p>
+                            </div>
+                            <input type="file" id="wordFile" accept=".docx" style="display: none;" onchange="handleWordUpload(this)">
+                        </div>
+
+                        <div class="tab-content" id="doc-tab-pdf">
+                            <div class="upload-zone" onclick="document.getElementById('pdfFile').click()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                                <h4>点击上传 PDF 文档</h4>
+                                <p>支持 .pdf 格式，自动提取文字内容</p>
+                            </div>
+                            <input type="file" id="pdfFile" accept=".pdf" style="display: none;" onchange="handlePdfUpload(this)">
+                        </div>
+
+                        <div id="extractedContent" style="margin-top: 24px; display: none;">
+                            <div class="panel">
+                                <div class="panel-header">
+                                    <h2>提取的文字内容</h2>
+                                    <button class="btn btn-primary" onclick="createArticleFromExtracted()">创建文章</button>
+                                </div>
+                                <div class="panel-body">
+                                    <textarea id="extractedText" class="form-input" rows="15" readonly></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 广告管理 -->
+            <div class="tab-content" id="tab-ads">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>广告位管理</h2>
+                        <button class="btn btn-primary">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            添加广告位
+                        </button>
+                    </div>
+                    <div class="panel-body">
+                        <div class="ad-grid">
+                            <div class="ad-card">
+                                <div class="ad-card-header">
+                                    <h4>首页顶部 Banner</h4>
+                                    <span class="status-badge published">投放中</span>
+                                </div>
+                                <div class="ad-placeholder">
+                                    <span>广告位 728x90</span>
+                                </div>
+                                <div class="ad-stats">
+                                    <div class="ad-stat">
+                                        <div class="value">12.4%</div>
+                                        <div class="label">点击率</div>
+                                    </div>
+                                    <div class="ad-stat">
+                                        <div class="value">2,341</div>
+                                        <div class="label">展示次数</div>
+                                    </div>
+                                    <div class="ad-stat">
+                                        <div class="value">290</div>
+                                        <div class="label">点击次数</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="ad-card">
+                                <div class="ad-card-header">
+                                    <h4>文章页侧边栏</h4>
+                                    <span class="status-badge published">投放中</span>
+                                </div>
+                                <div class="ad-placeholder">
+                                    <span>广告位 300x250</span>
+                                </div>
+                                <div class="ad-stats">
+                                    <div class="ad-stat">
+                                        <div class="value">8.7%</div>
+                                        <div class="label">点击率</div>
+                                    </div>
+                                    <div class="ad-stat">
+                                        <div class="value">5,892</div>
+                                        <div class="label">展示次数</div>
+                                    </div>
+                                    <div class="ad-stat">
+                                        <div class="value">512</div>
+                                        <div class="label">点击次数</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="ad-card">
+                                <div class="ad-card-header">
+                                    <h4>文章底部</h4>
+                                    <span class="status-badge draft">暂停</span>
+                                </div>
+                                <div class="ad-placeholder">
+                                    <span>广告位 728x90</span>
+                                </div>
+                                <div class="ad-stats">
+                                    <div class="ad-stat">
+                                        <div class="value">0%</div>
+                                        <div class="label">点击率</div>
+                                    </div>
+                                    <div class="ad-stat">
+                                        <div class="value">0</div>
+                                        <div class="label">展示次数</div>
+                                    </div>
+                                    <div class="ad-stat">
+                                        <div class="value">0</div>
+                                        <div class="label">点击次数</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 引流设置 -->
+            <div class="tab-content" id="tab-traffic">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>SEO 配置</h2>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">网站标题</label>
+                                <input type="text" class="form-input" value="史韵 | 精品历史文学" id="seoTitle">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">网站描述</label>
+                                <input type="text" class="form-input" value="精选史记、名著名篇、历史典故，传承千年文脉" id="seoDescription">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">关键词（用逗号分隔）</label>
+                            <input type="text" class="form-input" value="历史文学,古文,史记,资治通鉴,古文观止" id="seoKeywords">
+                        </div>
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" checked id="seoAutoGenerate"> 自动生成文章 SEO Meta 标签
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" checked id="seoSitemap"> 自动生成 SiteMap
+                            </label>
+                        </div>
+                        <button class="btn btn-primary" onclick="saveSeoConfig()" style="margin-top: 16px;">保存 SEO 配置</button>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 24px;">
+                    <div class="panel-header">
+                        <h2>文章权重设置</h2>
+                    </div>
+                    <div class="panel-body">
+                        <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                            设置文章的推荐权重，权重越高的文章越容易出现在首页推荐位。系统会根据权重、发布时间、浏览量综合计算排名。
+                        </p>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>文章</th>
+                                    <th>基础权重</th>
+                                    <th>互动加分</th>
+                                    <th>时效性</th>
+                                    <th>综合得分</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>滕王阁序</strong></td>
+                                    <td><input type="number" value="10" min="1" max="100" class="form-input" style="width: 80px;"></td>
+                                    <td>+5.2</td>
+                                    <td>+2</td>
+                                    <td><strong style="color: var(--primary);">17.2</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>陈情表</strong></td>
+                                    <td><input type="number" value="8" min="1" max="100" class="form-input" style="width: 80px;"></td>
+                                    <td>+3.8</td>
+                                    <td>+1</td>
+                                    <td><strong style="color: var(--primary);">12.8</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>岳阳楼记</strong></td>
+                                    <td><input type="number" value="7" min="1" max="100" class="form-input" style="width: 80px;"></td>
+                                    <td>+2.5</td>
+                                    <td>+0</td>
+                                    <td><strong style="color: var(--primary);">9.5</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 24px;">
+                    <div class="panel-header">
+                        <h2>社交平台分发</h2>
+                    </div>
+                    <div class="panel-body">
+                        <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                            配置文章发布时自动同步到社交平台
+                        </p>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
+                            <label class="distribute-option">
+                                <input type="checkbox" id="autoWechat"> 
+                                <span class="distribute-platform">
+                                    <span class="platform-icon" style="background: #07c160;">微</span>
+                                    <span class="platform-name">微信公众号</span>
+                                </span>
+                            </label>
+                            <label class="distribute-option">
+                                <input type="checkbox" id="autoWeibo"> 
+                                <span class="distribute-platform">
+                                    <span class="platform-icon" style="background: #e6162d;">博</span>
+                                    <span class="platform-name">微博</span>
+                                </span>
+                            </label>
+                            <label class="distribute-option">
+                                <input type="checkbox" id="autoZhihu"> 
+                                <span class="distribute-platform">
+                                    <span class="platform-icon" style="background: #0066ff;">知</span>
+                                    <span class="platform-name">知乎</span>
+                                </span>
+                            </label>
+                            <label class="distribute-option">
+                                <input type="checkbox" id="autoToutiao"> 
+                                <span class="distribute-platform">
+                                    <span class="platform-icon" style="background: #f85959;">条</span>
+                                    <span class="platform-name">今日头条</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 24px;">
+                    <div class="panel-header">
+                        <h2>引流机制</h2>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">社交分享文案模板</label>
+                                <textarea class="form-input" rows="3" id="shareTemplate">📜 {title}
+
+{excerpt}
+
+—— 摘自 {author}《{dynasty}》
+
+👉 阅读更多：{url}</textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">开启自动引流功能</label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" checked id="autoSeo"> 自动生成 SEO meta 标签
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="autoNotify"> 文章更新自动通知
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="relatedLinks"> 开启相关文章内链
+                            </label>
+                        </div>
+                        <button class="btn btn-primary" onclick="saveTrafficConfig()" style="margin-top: 16px;">保存引流配置</button>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 24px;">
+                    <div class="panel-header">
+                        <h2>外链管理</h2>
+                    </div>
+                    <div class="panel-body">
+                        <p style="color: var(--text-secondary); margin-bottom: 16px;">
+                            管理站外链接，控制输出流量
+                        </p>
+                        <div class="list-item" style="background: var(--bg-dark); border-radius: 8px; margin-bottom: 12px;">
+                            <div class="list-item-content">
+                                <div class="list-item-title">古诗文网</div>
+                                <div class="list-item-meta">https://so.gushiwen.cn · 每月约 1,234 次跳转</div>
+                            </div>
+                            <span class="status-badge published">启用</span>
+                        </div>
+                        <div class="list-item" style="background: var(--bg-dark); border-radius: 8px; margin-bottom: 12px;">
+                            <div class="list-item-content">
+                                <div class="list-item-title">百度百科</div>
+                                <div class="list-item-meta">https://baike.baidu.com · 每月约 856 次跳转</div>
+                            </div>
+                            <span class="status-badge published">启用</span>
+                        </div>
+                        <div class="list-item" style="background: var(--bg-dark); border-radius: 8px;">
+                            <div class="list-item-content">
+                                <div class="list-item-title">Wikipedia</div>
+                                <div class="list-item-meta">https://en.wikipedia.org · 每月约 432 次跳转</div>
+                            </div>
+                            <span class="status-badge draft">禁用</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据分析 -->
+            <div class="tab-content" id="tab-analytics">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon pv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+                        <div class="stat-value">128</div>
+                        <div class="stat-label">今日 PV</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon uv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+                        <div class="stat-value">42</div>
+                        <div class="stat-label">今日 UV</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon article"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+                        <div class="stat-value">3.05</div>
+                        <div class="stat-label">平均阅读时长(分钟)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon audio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+                        <div class="stat-value">68%</div>
+                        <div class="stat-label">跳出率</div>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 24px;">
+                    <div class="panel-header">
+                        <h2>读者画像分析</h2>
+                    </div>
+                    <div class="panel-body">
+                        <div class="profile-grid">
+                            <div class="profile-card">
+                                <h4>📊 年龄分布</h4>
+                                <div class="bar-chart">
+                                    <div class="bar-item">
+                                        <div class="label"><span>18-24岁</span><span>25%</span></div>
+                                        <div class="bar"><div class="bar-fill primary" style="width: 25%;"></div></div>
+                                    </div>
+                                    <div class="bar-item">
+                                        <div class="label"><span>25-34岁</span><span>38%</span></div>
+                                        <div class="bar"><div class="bar-fill success" style="width: 38%;"></div></div>
+                                    </div>
+                                    <div class="bar-item">
+                                        <div class="label"><span>35-44岁</span><span>22%</span></div>
+                                        <div class="bar"><div class="bar-fill warning" style="width: 22%;"></div></div>
+                                    </div>
+                                    <div class="bar-item">
+                                        <div class="label"><span>45岁以上</span><span>15%</span></div>
+                                        <div class="bar"><div class="bar-fill info" style="width: 15%;"></div></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="profile-card">
+                                <h4>🎓 学历背景</h4>
+                                <div class="bar-chart">
+                                    <div class="bar-item">
+                                        <div class="label"><span>本科</span><span>45%</span></div>
+                                        <div class="bar"><div class="bar-fill primary" style="width: 45%;"></div></div>
+                                    </div>
+                                    <div class="bar-item">
+                                        <div class="label"><span>硕士</span><span>28%</span></div>
+                                        <div class="bar"><div class="bar-fill success" style="width: 28%;"></div></div>
+                                    </div>
+                                    <div class="bar-item">
+                                        <div class="label"><span>博士</span><span>8%</span></div>
+                                        <div class="bar"><div class="bar-fill warning" style="width: 8%;"></div></div>
+                                    </div>
+                                    <div class="bar-item">
+                                        <div class="label"><span>其他</span><span>19%</span></div>
+                                        <div class="bar"><div class="bar-fill info" style="width: 19%;"></div></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="profile-card">
+                                <h4>⏰ 访问时段</h4>
+                                <div class="bar-chart">
+                                    <div class="bar-item">
+                                        <div class="label"><span>早间(6-12)</span><span>22%</span></div>
+                                        <div class="bar"><div class="bar-fill primary" style="width: 22%;"></div></div>
+                                    </div>
+                                    <div class="bar-item">
+                                        <div class="label"><span>午间(12-14)</span><span>18%</span></div>
+                                        <div class="bar"><div class="bar-fill success" style="width: 18%;"></div></div>
+                                    </div>
+                                    <div class="bar-item">
+                                        <div class="label"><span>下午(14-18)</span><span>25%</span></div>
+                                        <div class="bar"><div class="bar-fill warning" style="width: 25%;"></div></div>
+                                    </div>
+                                    <div class="bar-item">
+                                        <div class="label"><span>晚间(18-24)</span><span>35%</span></div>
+                                        <div class="bar"><div class="bar-fill info" style="width: 35%;"></div></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 打赏管理 -->
+            <div class="tab-content" id="tab-rewards">
+                <div class="stats-grid" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-icon article" style="background: rgba(201, 64, 67, 0.15); color: var(--primary);">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        </div>
+                        <div class="stat-value" id="totalRewards">¥ 1,284</div>
+                        <div class="stat-label">累计收益</div>
+                        <div class="stat-change up">↑ 15.3% 较上月</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon uv" style="background: rgba(76, 175, 80, 0.15); color: var(--success);">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                        </div>
+                        <div class="stat-value" id="rewardCount">86</div>
+                        <div class="stat-label">打赏人数</div>
+                        <div class="stat-change up">↑ 12 人</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon pv" style="background: rgba(33, 150, 243, 0.15); color: var(--info);">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        </div>
+                        <div class="stat-value" id="avgReward">¥ 14.9</div>
+                        <div class="stat-label">平均打赏</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon audio" style="background: rgba(255, 152, 0, 0.15); color: var(--warning);">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        </div>
+                        <div class="stat-value" id="withdrawal">¥ 800</div>
+                        <div class="stat-label">已提现金额</div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                    <!-- 收款码配置 -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>收款码配置</h2>
+                        </div>
+                        <div class="panel-body">
+                            <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 13px;">
+                                上传你的微信和支付宝收款码，读者扫描即可打赏。建议尺寸 200x200 以上。
+                            </p>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div class="form-group">
+                                    <label class="form-label">微信收款码</label>
+                                    <div class="upload-zone" style="padding: 20px;" onclick="document.getElementById('wechatQrInput').click()">
+                                        <div id="wechatQrPreview" style="width: 120px; height: 120px; margin: 0 auto; background: var(--bg-dark); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                            <span style="font-size: 12px; color: var(--text-secondary);">点击上传</span>
+                                        </div>
+                                    </div>
+                                    <input type="file" id="wechatQrInput" accept="image/*" style="display: none;" onchange="handleQrUpload(this, 'wechat')">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">支付宝收款码</label>
+                                    <div class="upload-zone" style="padding: 20px;" onclick="document.getElementById('alipayQrInput').click()">
+                                        <div id="alipayQrPreview" style="width: 120px; height: 120px; margin: 0 auto; background: var(--bg-dark); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                            <span style="font-size: 12px; color: var(--text-secondary);">点击上传</span>
+                                        </div>
+                                    </div>
+                                    <input type="file" id="alipayQrInput" accept="image/*" style="display: none;" onchange="handleQrUpload(this, 'alipay')">
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" onclick="saveRewardConfig()" style="margin-top: 16px;">
+                                保存收款码配置
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 打赏记录 -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>最近打赏记录</h2>
+                        </div>
+                        <div class="panel-body" style="padding: 0;">
+                            <div id="rewardRecords" style="max-height: 400px; overflow-y: auto;">
+                                <!-- 动态渲染 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 24px;">
+                    <div class="panel-header">
+                        <h2>提现管理</h2>
+                    </div>
+                    <div class="panel-body">
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px;">
+                            <div class="form-group">
+                                <label class="form-label">可提现余额</label>
+                                <div style="font-size: 28px; font-weight: 700; color: var(--primary);" id="withdrawableBalance">¥ 484</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">提现金额</label>
+                                <input type="number" class="form-input" placeholder="输入提现金额" value="484" id="withdrawAmount">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">提现方式</label>
+                                <select class="form-input" id="withdrawMethod">
+                                    <option value="wechat">微信</option>
+                                    <option value="alipay">支付宝</option>
+                                    <option value="bank">银行卡</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="margin-top: 16px;">
+                            <button class="btn btn-primary" onclick="applyWithdrawal()">申请提现</button>
+                            <span style="margin-left: 16px; font-size: 12px; color: var(--text-secondary);">
+                                提现将在 1-3 个工作日内到账
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 24px;">
+                    <div class="panel-header">
+                        <h2>提现记录</h2>
+                    </div>
+                    <div class="panel-body" style="padding: 0;">
+                        <div id="withdrawalRecords">
+                            <div class="withdrawal-record">
+                                <div class="withdrawal-info">
+                                    <div class="withdrawal-amount">¥ 500</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">微信 · 2026-05-10 14:30</div>
+                                </div>
+                                <span class="withdrawal-status completed">已完成</span>
+                            </div>
+                            <div class="withdrawal-record">
+                                <div class="withdrawal-info">
+                                    <div class="withdrawal-amount">¥ 300</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">支付宝 · 2026-04-25 09:15</div>
+                                </div>
+                                <span class="withdrawal-status completed">已完成</span>
+                            </div>
+                            <div class="withdrawal-record">
+                                <div class="withdrawal-info">
+                                    <div class="withdrawal-amount">¥ 200</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">银行卡 · 2026-04-10 16:45</div>
+                                </div>
+                                <span class="withdrawal-status completed">已完成</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 24px;">
+                    <div class="panel-header">
+                        <h2>打赏设置</h2>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">默认打赏金额（元）</label>
+                                <input type="text" class="form-input" value="1, 5, 10, 20, 50">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">最高单次打赏</label>
+                                <input type="number" class="form-input" value="200" style="width: 120px;">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" checked> 开启打赏功能
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" checked> 显示打赏按钮
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 爬虫管理 -->
+            <div class="tab-content" id="tab-spider">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>文章采集规则</h2>
+                        <button class="btn btn-primary" onclick="addSpiderRule()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            添加采集规则
+                        </button>
+                    </div>
+                    <div class="panel-body">
+                        <div id="spiderRules">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>规则名称</th>
+                                        <th>目标网站</th>
+                                        <th>选择器</th>
+                                        <th>状态</th>
+                                        <th>最后采集</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="spiderRulesBody">
+                                    <tr>
+                                        <td><strong>古诗文网采集</strong></td>
+                                        <td>https://so.gushiwen.cn</td>
+                                        <td><code style="font-size: 12px; background: var(--bg-dark); padding: 2px 6px; border-radius: 4px;">.sons .cont</code></td>
+                                        <td><span class="status-badge published">运行中</span></td>
+                                        <td>2026-05-17 09:30</td>
+                                        <td>
+                                            <div class="action-btns">
+                                                <button class="action-btn" onclick="runSpider(1)" title="立即采集">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                                </button>
+                                                <button class="action-btn" title="编辑">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                                </button>
+                                                <button class="action-btn" onclick="deleteSpiderRule(1)" title="删除">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>中华诗词网</strong></td>
+                                        <td>https://www.zhscds.com</td>
+                                        <td><code style="font-size: 12px; background: var(--bg-dark); padding: 2px 6px; border-radius: 4px;">.article-list .item</code></td>
+                                        <td><span class="status-badge draft">已暂停</span></td>
+                                        <td>2026-05-15 14:20</td>
+                                        <td>
+                                            <div class="action-btns">
+                                                <button class="action-btn" onclick="runSpider(2)" title="立即采集">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                                </button>
+                                                <button class="action-btn" title="编辑">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                                </button>
+                                                <button class="action-btn" onclick="deleteSpiderRule(2)" title="删除">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 24px;">
+                    <div class="panel-header">
+                        <h2>采集任务记录</h2>
+                    </div>
+                    <div class="panel-body" style="padding: 0;">
+                        <div id="spiderLogs" style="max-height: 400px; overflow-y: auto;">
+                            <div class="list-item">
+                                <div class="list-item-thumb" style="background: var(--success); color: white; font-size: 12px;">成功</div>
+                                <div class="list-item-content">
+                                    <div class="list-item-title">古诗文网采集 - 滕王阁序</div>
+                                    <div class="list-item-meta">2026-05-17 09:30:22 · 采集 1 篇文章</div>
+                                </div>
+                            </div>
+                            <div class="list-item">
+                                <div class="list-item-thumb" style="background: var(--success); color: white; font-size: 12px;">成功</div>
+                                <div class="list-item-content">
+                                    <div class="list-item-title">古诗文网采集 - 岳阳楼记</div>
+                                    <div class="list-item-meta">2026-05-17 09:30:15 · 采集 1 篇文章</div>
+                                </div>
+                            </div>
+                            <div class="list-item">
+                                <div class="list-item-thumb" style="background: var(--warning); color: white; font-size: 12px;">警告</div>
+                                <div class="list-item-content">
+                                    <div class="list-item-title">古诗文网采集 - 部分内容重复</div>
+                                    <div class="list-item-meta">2026-05-17 09:28:03 · 跳过了 2 篇重复文章</div>
+                                </div>
+                            </div>
+                            <div class="list-item">
+                                <div class="list-item-thumb" style="background: var(--primary); color: white; font-size: 12px;">失败</div>
+                                <div class="list-item-content">
+                                    <div class="list-item-title">中华诗词网采集 - 连接超时</div>
+                                    <div class="list-item-meta">2026-05-15 14:20:01 · 目标网站无响应</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 24px;">
+                    <div class="panel-header">
+                        <h2>新增待审核文章</h2>
+                        <span class="badge" style="background: var(--warning);">3 篇</span>
+                    </div>
+                    <div class="panel-body" style="padding: 0;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>文章</th>
+                                    <th>来源</th>
+                                    <th>采集时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingSpiderArticles">
+                                <tr>
+                                    <td><strong>春夜宴从弟桃花园序</strong></td>
+                                    <td>古诗文网</td>
+                                    <td>2026-05-17 09:32</td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <button class="action-btn" onclick="approveSpiderArticle(1)" title="通过" style="color: var(--success);">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                            </button>
+                                            <button class="action-btn" title="编辑">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                            </button>
+                                            <button class="action-btn" onclick="rejectSpiderArticle(1)" title="拒绝" style="color: var(--primary);">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>滕王阁序（节选）</strong></td>
+                                    <td>古诗文网</td>
+                                    <td>2026-05-17 09:31</td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <button class="action-btn" onclick="approveSpiderArticle(2)" title="通过" style="color: var(--success);">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                            </button>
+                                            <button class="action-btn" title="编辑">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                            </button>
+                                            <button class="action-btn" onclick="rejectSpiderArticle(2)" title="拒绝" style="color: var(--primary);">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>师说</strong></td>
+                                    <td>古诗文网</td>
+                                    <td>2026-05-17 09:30</td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <button class="action-btn" onclick="approveSpiderArticle(3)" title="通过" style="color: var(--success);">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                            </button>
+                                            <button class="action-btn" title="编辑">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                            </button>
+                                            <button class="action-btn" onclick="rejectSpiderArticle(3)" title="拒绝" style="color: var(--primary);">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据修正 -->
+            <div class="tab-content" id="tab-stats-mod">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>PV / UV 数据修正</h2>
+                    </div>
+                    <div class="panel-body">
+                        <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 13px;">
+                            手动修正网站统计数据。如需批量修正，请先筛选文章后进行操作。
+                        </p>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 24px;">
+                            <div class="stat-card">
+                                <div class="stat-icon pv">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </div>
+                                <div class="stat-value" id="displayPV">12,847</div>
+                                <div class="stat-label">当前 PV</div>
+                                <button class="btn btn-secondary" style="margin-top: 12px; width: 100%;" onclick="openPvModifyModal()">修改 PV</button>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon uv">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                                </div>
+                                <div class="stat-value" id="displayUV">3,284</div>
+                                <div class="stat-label">当前 UV</div>
+                                <button class="btn btn-secondary" style="margin-top: 12px; width: 100%;" onclick="openUvModifyModal()">修改 UV</button>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon article">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                </div>
+                                <div class="stat-value" id="displayArticlePv">0</div>
+                                <div class="stat-label">单篇 PV 修正</div>
+                                <button class="btn btn-secondary" style="margin-top: 12px; width: 100%;" onclick="openArticlePvModal()">选择文章</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 24px;">
+                    <div class="panel-header">
+                        <h2>修改历史记录</h2>
+                    </div>
+                    <div class="panel-body" style="padding: 0;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>时间</th>
+                                    <th>类型</th>
+                                    <th>操作前</th>
+                                    <th>操作后</th>
+                                    <th>操作人</th>
+                                    <th>备注</th>
+                                </tr>
+                            </thead>
+                            <tbody id="statsModHistory">
+                                <tr>
+                                    <td>2026-05-17 10:25</td>
+                                    <td><span class="status-badge published">PV</span></td>
+                                    <td>12,000</td>
+                                    <td style="color: var(--success);">12,847</td>
+                                    <td>管理员</td>
+                                    <td>修正统计误差</td>
+                                </tr>
+                                <tr>
+                                    <td>2026-05-16 15:40</td>
+                                    <td><span class="status-badge draft">UV</span></td>
+                                    <td>3,100</td>
+                                    <td style="color: var(--success);">3,284</td>
+                                    <td>管理员</td>
+                                    <td>补充遗漏数据</td>
+                                </tr>
+                                <tr>
+                                    <td>2026-05-15 09:20</td>
+                                    <td><span class="status-badge published">文章PV</span></td>
+                                    <td>1,500</td>
+                                    <td style="color: var(--success);">1,892</td>
+                                    <td>管理员</td>
+                                    <td>《陈情表》浏览量修正</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 24px;">
+                    <div class="panel-header">
+                        <h2>批量操作</h2>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">选择文章范围</label>
+                                <select class="form-input" id="batchArticleScope">
+                                    <option value="all">全部文章</option>
+                                    <option value="published">仅已发布</option>
+                                    <option value="pending">仅待审核</option>
+                                    <option value="category">按分类</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">批量操作类型</label>
+                                <select class="form-input" id="batchOperation">
+                                    <option value="multiply">按倍数增加</option>
+                                    <option value="add">增加固定值</option>
+                                    <option value="set">设置为固定值</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">数值</label>
+                                <input type="number" class="form-input" id="batchValue" value="1.5" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">备注原因</label>
+                                <input type="text" class="form-input" id="batchReason" placeholder="输入操作原因">
+                            </div>
+                        </div>
+                        <div style="margin-top: 16px;">
+                            <button class="btn btn-primary" onclick="executeBatchOperation()">执行批量操作</button>
+                            <span style="margin-left: 16px; font-size: 12px; color: var(--text-secondary);">
+                                ⚠️ 批量操作不可逆，请谨慎操作
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 文章编辑模态框 -->
+    <div class="modal-overlay" id="articleModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>编辑文章</h3>
+                <button class="modal-close" onclick="closeArticleModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">标题</label>
+                    <input type="text" class="form-input" id="articleTitle" placeholder="输入文章标题">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">作者</label>
+                        <input type="text" class="form-input" id="articleAuthor" placeholder="作者姓名">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">朝代</label>
+                        <select class="form-input" id="articleDynasty">
+                            <option value="先秦">先秦</option>
+                            <option value="两汉">两汉</option>
+                            <option value="魏晋">魏晋</option>
+                            <option value="唐宋">唐宋</option>
+                            <option value="明清">明清</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">权重设置</label>
+                    <input type="number" class="form-input" id="articleWeight" value="5" min="1" max="100">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">审核状态</label>
+                    <select class="form-input" id="articleStatus">
+                        <option value="draft">草稿</option>
+                        <option value="pending">待审核</option>
+                        <option value="published">已发布</option>
+                        <option value="rejected">已拒绝</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">文章正文</label>
+                    <textarea class="form-input" id="articleContent" rows="10" placeholder="输入文章内容..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeArticleModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveArticle()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 文章分发模态框 -->
+    <div class="modal-overlay" id="distributeModal">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>分发文章到其他平台</h3>
+                <button class="modal-close" onclick="closeDistributeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 13px;">
+                    选择要分发的目标平台，文章将自动适配各平台格式后发布。
+                </p>
+                <div style="display: grid; gap: 16px;">
+                    <label class="distribute-option">
+                        <input type="checkbox" name="distribute" value="wechat"> 
+                        <span class="distribute-platform">
+                            <span class="platform-icon" style="background: #07c160;">微</span>
+                            <span class="platform-name">微信公众号</span>
+                        </span>
+                    </label>
+                    <label class="distribute-option">
+                        <input type="checkbox" name="distribute" value="weibo"> 
+                        <span class="distribute-platform">
+                            <span class="platform-icon" style="background: #e6162d;">博</span>
+                            <span class="platform-name">微博</span>
+                        </span>
+                    </label>
+                    <label class="distribute-option">
+                        <input type="checkbox" name="distribute" value="zhihu"> 
+                        <span class="distribute-platform">
+                            <span class="platform-icon" style="background: #0066ff;">知</span>
+                            <span class="platform-name">知乎</span>
+                        </span>
+                    </label>
+                    <label class="distribute-option">
+                        <input type="checkbox" name="distribute" value="toutiao"> 
+                        <span class="distribute-platform">
+                            <span class="platform-icon" style="background: #f85959;">条</span>
+                            <span class="platform-name">今日头条</span>
+                        </span>
+                    </label>
+                    <label class="distribute-option">
+                        <input type="checkbox" name="distribute" value="bilibili"> 
+                        <span class="distribute-platform">
+                            <span class="platform-icon" style="background: #fb7299;">B</span>
+                            <span class="platform-name">哔哩哔哩</span>
+                        </span>
+                    </label>
+                </div>
+                <div class="form-group" style="margin-top: 20px;">
+                    <label class="form-label">分发选项</label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: 8px;">
+                        <input type="checkbox" id="includeCover"> 包含封面图片
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: 8px;">
+                        <input type="checkbox" id="includeAuthor"> 附带作者信息
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: 8px;">
+                        <input type="checkbox" id="addWatermark"> 添加水印
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDistributeModal()">取消</button>
+                <button class="btn btn-primary" onclick="confirmDistribute()">确认分发</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PV修改模态框 -->
+    <div class="modal-overlay" id="pvModifyModal">
+        <div class="modal" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>修改 PV 数据</h3>
+                <button class="modal-close" onclick="closePvModifyModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">新的 PV 值</label>
+                    <input type="number" class="form-input" id="newPvValue" placeholder="输入PV值" min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">修改原因</label>
+                    <input type="text" class="form-input" id="pvModifyReason" placeholder="输入修改原因">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closePvModifyModal()">取消</button>
+                <button class="btn btn-primary" onclick="confirmPvModify()">确认修改</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- UV修改模态框 -->
+    <div class="modal-overlay" id="uvModifyModal">
+        <div class="modal" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>修改 UV 数据</h3>
+                <button class="modal-close" onclick="closeUvModifyModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">新的 UV 值</label>
+                    <input type="number" class="form-input" id="newUvValue" placeholder="输入UV值" min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">修改原因</label>
+                    <input type="text" class="form-input" id="uvModifyReason" placeholder="输入修改原因">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeUvModifyModal()">取消</button>
+                <button class="btn btn-primary" onclick="confirmUvModify()">确认修改</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 文章PV修改模态框 -->
+    <div class="modal-overlay" id="articlePvModal">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>修改单篇文章 PV</h3>
+                <button class="modal-close" onclick="closeArticlePvModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">选择文章</label>
+                    <select class="form-input" id="articlePvSelect" onchange="onArticlePvSelectChange()">
+                        <option value="">-- 选择文章 --</option>
+                    </select>
+                </div>
+                <div id="articlePvInfo" style="display: none; padding: 16px; background: var(--bg-dark); border-radius: 8px; margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>当前 PV:</span>
+                        <strong id="currentArticlePv">0</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>文章标题:</span>
+                        <span id="currentArticleTitle">-</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">新的 PV 值</label>
+                    <input type="number" class="form-input" id="newArticlePvValue" placeholder="输入PV值" min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">修改原因</label>
+                    <input type="text" class="form-input" id="articlePvModifyReason" placeholder="输入修改原因">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeArticlePvModal()">取消</button>
+                <button class="btn btn-primary" onclick="confirmArticlePvModify()">确认修改</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 音频上传模态框 -->
+    <div class="modal-overlay" id="audioModal">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>上传音频</h3>
+                <button class="modal-close" onclick="closeAudioModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">音频标题</label>
+                    <input type="text" class="form-input" id="audioTitle" placeholder="输入音频标题">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">关联文章</label>
+                    <select class="form-input" id="audioArticle">
+                        <option value="">-- 选择关联文章 --</option>
+                    </select>
+                </div>
+                <div class="upload-zone" onclick="document.getElementById('audioFile').click()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                    <h4>点击上传音频文件</h4>
+                    <p>支持 MP3、WAV 格式，最大 50MB</p>
+                </div>
+                <input type="file" id="audioFile" accept=".mp3,.wav" style="display: none;" onchange="handleAudioUpload(this)">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAudioModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveAudio()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 容器 -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/admin.js"></script>
+</body>
+</html>

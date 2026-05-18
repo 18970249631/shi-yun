@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="史韵 - 精品历史文学，品读千年文脉">
+    <meta name="keywords" content="历史文学,古文,文言文">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="文章详情 | 史韵">
+    <meta property="og:type" content="article">
+    <meta property="og:locale" content="zh_CN">
+    
+    <title>文章详情 | 史韵</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📜</text></svg>">
+</head>
+<body>
+    <!-- 阅读进度条 -->
+    <div class="reading-progress" id="readingProgress"></div>
+
+    <!-- 导航栏 -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="index.html" class="logo" aria-label="史韵首页">
+                <span class="logo-char">史</span>
+                <span class="logo-text">韵</span>
+            </a>
+            <nav class="nav" role="navigation" aria-label="主导航">
+                <a href="index.html" class="nav-link">首页</a>
+                <a href="category.html?id=先秦" class="nav-link">先秦</a>
+                <a href="category.html?id=两汉" class="nav-link">两汉</a>
+                <a href="category.html?id=魏晋" class="nav-link">魏晋</a>
+                <a href="category.html?id=唐宋" class="nav-link">唐宋</a>
+                <a href="category.html?id=明清" class="nav-link">明清</a>
+            </nav>
+            <div class="header-actions">
+                <button class="search-btn" onclick="toggleSearch()" aria-label="搜索">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="M21 21l-4.35-4.35"></path>
+                    </svg>
+                </button>
+                <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="菜单" aria-expanded="false">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+        <nav class="mobile-nav" id="mobileNav" aria-label="移动端导航">
+            <a href="index.html">首页</a>
+            <a href="category.html?id=先秦">先秦</a>
+            <a href="category.html?id=两汉">两汉</a>
+            <a href="category.html?id=魏晋">魏晋</a>
+            <a href="category.html?id=唐宋">唐宋</a>
+            <a href="category.html?id=明清">明清</a>
+        </nav>
+    </header>
+
+    <!-- 搜索框 -->
+    <div class="search-overlay" id="searchOverlay" role="dialog" aria-modal="true" aria-label="搜索">
+        <div class="search-box">
+            <input type="text" placeholder="搜索文章、作者、朝代..." id="searchInput" autocomplete="off">
+            <button onclick="performSearch()">搜索</button>
+        </div>
+    </div>
+
+    <!-- 文章内容 -->
+    <main class="article-detail">
+        <a href="index.html" class="article-back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            返回首页
+        </a>
+        
+        <article id="articleContent">
+            <!-- 动态渲染 -->
+        </article>
+
+        <!-- 操作栏 -->
+        <div class="article-actions" id="articleActions">
+            <button class="bookmark-btn" id="bookmarkBtn" onclick="toggleBookmark()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                </svg>
+                <span id="bookmarkText">收藏</span>
+            </button>
+            <button class="reward-btn" id="rewardBtn" onclick="openRewardModal()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+                <span>打赏</span>
+            </button>
+        </div>
+
+        <!-- 打赏模态框 -->
+        <div class="reward-modal" id="rewardModal">
+            <div class="reward-modal-content">
+                <div class="reward-modal-header">
+                    <h3>给予作者鼓励</h3>
+                    <button class="reward-close" onclick="closeRewardModal()">×</button>
+                </div>
+                <div class="reward-modal-body">
+                    <div class="reward-amounts">
+                        <button class="reward-amount" data-amount="1">¥1</button>
+                        <button class="reward-amount active" data-amount="5">¥5</button>
+                        <button class="reward-amount" data-amount="10">¥10</button>
+                        <button class="reward-amount" data-amount="20">¥20</button>
+                        <button class="reward-amount" data-amount="50">¥50</button>
+                    </div>
+                    <div class="reward-custom">
+                        <label>自定义金额</label>
+                        <div class="reward-custom-input">
+                            <span>¥</span>
+                            <input type="number" id="customAmount" placeholder="输入金额" min="1" max="200">
+                        </div>
+                    </div>
+                    <div class="reward-qrcodes">
+                        <div class="reward-qrcode">
+                            <div class="qrcode-title">微信支付</div>
+                            <div class="qrcode-box" id="wechatQrcode">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Crect fill='%23f5f5f5' width='150' height='150'/%3E%3Ctext x='75' y='80' text-anchor='middle' fill='%23999' font-size='12'%3E请在后台配置%3C/text%3E%3Ctext x='75' y='100' text-anchor='middle' fill='%23999' font-size='10'%3E微信收款码%3C/text%3E%3C/svg%3E" alt="微信支付">
+                            </div>
+                        </div>
+                        <div class="reward-qrcode">
+                            <div class="qrcode-title">支付宝</div>
+                            <div class="qrcode-box" id="alipayQrcode">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Crect fill='%23f5f5f5' width='150' height='150'/%3E%3Ctext x='75' y='80' text-anchor='middle' fill='%23999' font-size='12'%3E请在后台配置%3C/text%3E%3Ctext x='75' y='100' text-anchor='middle' fill='%23999' font-size='10'%3E支付宝收款码%3C/text%3E%3C/svg%3E" alt="支付宝">
+                            </div>
+                        </div>
+                    </div>
+                    <p class="reward-tip">长按保存收款码，转账时备注金额将自动记录</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 相关文章 -->
+        <section class="related-articles" id="relatedSection" style="display:none;">
+            <h3 class="related-title">相关推荐</h3>
+            <div class="related-grid" id="relatedGrid"></div>
+        </section>
+    </main>
+
+    <!-- 回到顶部 -->
+    <button class="back-to-top" id="backToTop" onclick="scrollToTop()" aria-label="回到顶部">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 15l-6-6-6 6"/>
+        </svg>
+    </button>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <span class="footer-logo">史韵</span>
+                    <p>传承千年文脉，品味历史之美</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-col">
+                        <h4>朝代分类</h4>
+                        <a href="category.html?id=先秦">先秦诸子</a>
+                        <a href="category.html?id=两汉">两汉风云</a>
+                        <a href="category.html?id=魏晋">魏晋风骨</a>
+                        <a href="category.html?id=唐宋">唐宋盛世</a>
+                        <a href="category.html?id=明清">明清传奇</a>
+                    </div>
+                    <div class="footer-col">
+                        <h4>关于</h4>
+                        <a href="#">关于我们</a>
+                        <a href="#">投稿须知</a>
+                        <a href="#">联系主编</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2026 史韵 | 精品历史文学平台 | 仅供学习交流</p>
+            </div>
+        </div>
+    </footer>
+
+    <style>
+        .article-actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 40px;
+            padding-top: 24px;
+            border-top: 1px solid var(--color-border);
+        }
+        .reward-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid var(--color-primary, #c94043);
+            background: transparent;
+            color: var(--color-primary, #c94043);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .reward-btn:hover {
+            background: var(--color-primary, #c94043);
+            color: white;
+        }
+        .reward-btn svg {
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+        
+        /* 打赏模态框 */
+        .reward-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .reward-modal.active {
+            display: flex;
+        }
+        .reward-modal-content {
+            background: var(--color-bg, #faf8f5);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 420px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .reward-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--color-border, #e5e5e5);
+        }
+        .reward-modal-header h3 {
+            font-family: var(--font-serif);
+            font-size: 18px;
+            color: var(--color-text, #1a1a1a);
+        }
+        .reward-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: var(--color-bg-light, #f5f5f5);
+            color: var(--color-text-secondary, #666);
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .reward-close:hover {
+            background: var(--color-primary, #c94043);
+            color: white;
+        }
+        .reward-modal-body {
+            padding: 24px;
+        }
+        .reward-amounts {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .reward-amount {
+            flex: 1;
+            min-width: 60px;
+            padding: 12px 8px;
+            border: 1px solid var(--color-border, #e5e5e5);
+            border-radius: 8px;
+            background: white;
+            color: var(--color-text, #1a1a1a);
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .reward-amount:hover {
+            border-color: var(--color-primary, #c94043);
+            color: var(--color-primary, #c94043);
+        }
+        .reward-amount.active {
+            background: var(--color-primary, #c94043);
+            border-color: var(--color-primary, #c94043);
+            color: white;
+        }
+        .reward-custom {
+            margin-bottom: 24px;
+        }
+        .reward-custom label {
+            display: block;
+            font-size: 13px;
+            color: var(--color-text-secondary, #666);
+            margin-bottom: 8px;
+        }
+        .reward-custom-input {
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--color-border, #e5e5e5);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .reward-custom-input span {
+            padding: 12px 16px;
+            background: var(--color-bg-light, #f5f5f5);
+            color: var(--color-text-secondary, #666);
+        }
+        .reward-custom-input input {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            font-size: 16px;
+            outline: none;
+        }
+        .reward-qrcodes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .reward-qrcode {
+            text-align: center;
+        }
+        .qrcode-title {
+            font-size: 14px;
+            color: var(--color-text, #1a1a1a);
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+        .qrcode-box {
+            background: white;
+            border: 1px solid var(--color-border, #e5e5e5);
+            border-radius: 12px;
+            padding: 12px;
+            display: inline-block;
+        }
+        .qrcode-box img {
+            width: 150px;
+            height: 150px;
+            display: block;
+        }
+        .reward-tip {
+            text-align: center;
+            font-size: 12px;
+            color: var(--color-text-secondary, #999);
+            margin-top: 20px;
+        }
+
+        /* 打赏模态框响应式 */
+        @media (max-width: 575px) {
+            .reward-modal-content {
+                max-width: 100%;
+                border-radius: 12px;
+            }
+            .reward-modal-header {
+                padding: 16px 20px;
+            }
+            .reward-modal-header h3 {
+                font-size: 16px;
+            }
+            .reward-modal-body {
+                padding: 16px;
+            }
+            .reward-amount {
+                padding: 10px 6px;
+                font-size: 14px;
+            }
+            .reward-custom-input input {
+                padding: 10px 12px;
+                font-size: 15px;
+            }
+            .qrcode-box img {
+                width: 130px;
+                height: 130px;
+            }
+        }
+
+        @media (max-width: 375px) {
+            .reward-amounts {
+                gap: 8px;
+            }
+            .reward-amount {
+                min-width: 50px;
+                padding: 8px 4px;
+                font-size: 13px;
+            }
+            .qrcode-box img {
+                width: 110px;
+                height: 110px;
+            }
+        }
+
+        .related-articles {
+            margin-top: 80px;
+            padding-top: 48px;
+            border-top: 1px solid var(--color-border);
+        }
+        .related-title {
+            font-family: var(--font-serif);
+            font-size: 22px;
+            margin-bottom: 24px;
+        }
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        /* 相关文章响应式 */
+        @media (max-width: 991px) {
+            .related-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+            }
+            .related-articles {
+                margin-top: 60px;
+                padding-top: 40px;
+            }
+        }
+
+        @media (max-width: 575px) {
+            .related-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            .related-title {
+                font-size: 20px;
+                margin-bottom: 16px;
+            }
+            .related-articles {
+                margin-top: 48px;
+                padding-top: 32px;
+            }
+        }
+
+        @media (max-width: 375px) {
+            .related-title {
+                font-size: 18px;
+            }
+        }
+
+        /* 文章操作栏响应式 */
+        @media (max-width: 575px) {
+            .article-actions {
+                gap: 12px;
+                margin-top: 32px;
+                padding-top: 20px;
+            }
+            .bookmark-btn,
+            .reward-btn {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+        }
+    </style>
+
+    <script src="js/article.js"></script>
+</body>
+</html>
