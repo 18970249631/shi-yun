@@ -65,8 +65,8 @@ function renderCategory() {
         }
     });
     
-    // 筛选该分类的文章
-    const filteredArticles = articles.filter(a => a.categoryId === categoryId);
+    // 筛选该分类的文章（仅显示已发布）
+    const filteredArticles = articles.filter(a => a.categoryId === categoryId && a.status === 'published');
     
     // 渲染文章列表
     const listEl = document.getElementById('categoryArticles');
@@ -123,10 +123,11 @@ function toggleSearch() {
 function performSearch() {
     const query = document.getElementById('searchInput').value.trim();
     if (query) {
-        const results = articles.filter(a => 
-            a.title.includes(query) || 
-            a.author.includes(query) || 
-            a.category.includes(query)
+        const results = articles.filter(a =>
+            a.status === 'published' &&
+            (a.title.includes(query) ||
+            a.author.includes(query) ||
+            a.category.includes(query))
         );
         if (results.length > 0) {
             window.location.href = `article.html?id=${results[0].id}`;
@@ -191,7 +192,7 @@ function renderAdPosition(position, containerId) {
 
     const adList = JSON.parse(localStorage.getItem('shiyun_ads') || '[]');
     const ad = adList.find(a => String(a.id) === String(adId));
-    if (!ad) {
+    if (!ad || ad.status !== 'published') {
         container.style.display = 'none';
         return;
     }

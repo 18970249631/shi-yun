@@ -1171,6 +1171,10 @@
                     <span class="logo-sub">管理后台</span>
                 </div>
             </a>
+            <div style="padding: 8px 16px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border); margin-top: 8px;">
+                <span id="roleBadge" style="font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--color-vermilion); color: white; font-weight: 500;">总管理员</span>
+                <button id="roleToggleBtn" onclick="setCurrentRole(getCurrentRole() === 'admin' ? 'editor' : 'admin')" style="font-size: 11px; padding: 2px 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg-dark); color: var(--text-primary); cursor: pointer;">切换角色</button>
+            </div>
         </div>
         <nav class="sidebar-nav">
             <div class="nav-section">
@@ -1415,6 +1419,7 @@
                             </select>
                         </div>
                     </div>
+                    <div id="articleRoleHint" style="padding: 8px 24px; font-size: 13px; color: var(--text-secondary); border-bottom: 1px solid var(--border);"></div>
                     <div class="panel-body" style="padding: 0;">
                         <table class="data-table">
                             <thead>
@@ -2384,6 +2389,7 @@
                             <button class="btn btn-secondary" id="adTabStatic" onclick="switchAdTab('static')" style="background: var(--primary); color: white;">📷 静态广告</button>
                             <button class="btn btn-secondary" id="adTabDynamic" onclick="switchAdTab('dynamic')">🎬 动态广告</button>
                         </div>
+                        <div id="adRoleHint" style="padding: 8px 0; font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;"></div>
 
                         <!-- 静态广告 -->
                         <div id="adStaticContent">

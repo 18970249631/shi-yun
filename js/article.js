@@ -292,9 +292,12 @@ function renderArticle() {
     
     // 懒加载
     initLazyLoad();
-    
-    // 渲染相关文章
-    const related = articles.filter(a => a.categoryId === article.categoryId && a.id !== id).slice(0, 3);
+
+    // 渲染翻页导航
+    renderArticleNav(id);
+
+    // 渲染相关文章（仅显示已发布）
+    const related = articles.filter(a => a.categoryId === article.categoryId && a.id !== id && a.status === 'published').slice(0, 3);
     if (related.length > 0) {
         document.getElementById('relatedSection').style.display = 'block';
         document.getElementById('relatedGrid').innerHTML = related.map(a => `
@@ -527,7 +530,7 @@ function renderAdPosition(position, containerId) {
 
     const adList = JSON.parse(localStorage.getItem('shiyun_ads') || '[]');
     const ad = adList.find(a => String(a.id) === String(adId));
-    if (!ad) {
+    if (!ad || ad.status !== 'published') {
         container.style.display = 'none';
         return;
     }
@@ -566,4 +569,111 @@ function renderFooterLinks() {
     if (html) {
         container.innerHTML = html;
     }
+}
+
+// ==================== 文章翻页导航 ====================
+
+function renderArticleNav(currentId) {
+    const container = document.getElementById('articleNav');
+    if (!container) return;
+
+    const sorted = [...articles].sort((a, b) => a.id - b.id);
+    const currentIndex = sorted.findIndex(a => a.id === currentId);
+    if (currentIndex === -1) return;
+
+    const prev = sorted[currentIndex - 1];
+    const next = sorted[currentIndex + 1];
+
+    let html = '';
+    if (prev) {
+        html += `
+            <a href="article.html?id=${prev.id}" class="article-nav-prev">
+                <span class="article-nav-label">上一篇</span>
+                <span class="article-nav-title">${prev.title}</span>
+            </a>
+        `;
+    } else {
+        html += `<div class="article-nav-placeholder"></div>`;
+    }
+
+    if (next) {
+        html += `
+            <a href="article.html?id=${next.id}" class="article-nav-next">
+                <span class="article-nav-label">下一篇</span>
+                <span class="article-nav-title">${next.title}</span>
+            </a>
+        `;
+    } else {
+        html += `<div class="article-nav-placeholder"></div>`;
+    }
+
+    container.innerHTML = html;
+}
+
+// ==================== 社交分享功能 ====================
+
+function shareTo(platform) {
+    const url = encodeURIComponent(window.location.href);
+    const title = encodeURIComponent(document.title);
+    const text = encodeURIComponent(`推荐一篇好文章：${document.title}`);
+
+    const shareUrls = {
+        wechat: null, // 微信需要二维码，特殊处理
+        weibo: `https://service.weibo.com/share/share.php?url=${url}&title=${text}&pic=`,
+        qq: `https://connect.qq.com/widget/shareqq/index.html?url=${url}&title=${title}&summary=${text}&pics=`,
+        twitter: `https://twitter.com/intent/tweet?url=${url}&text=${text}`,
+        facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
+        linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`,
+        telegram: `https://t.me/share/url?url=${url}&text=${text}`
+    };
+
+    if (platform === 'wechat') {
+        showWechatShare();
+        return;
+    }
+
+    if (platform === 'copy') {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            showToast('链接已复制到剪贴板', 'success');
+        }).catch(() => {
+            // 降级方案
+            const input = document.createElement('input');
+            input.value = window.location.href;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            document.body.removeChild(input);
+            showToast('链接已复制到剪贴板', 'success');
+        });
+        return;
+    }
+
+    const shareUrl = shareUrls[platform];
+    if (shareUrl) {
+        window.open(shareUrl, '_blank', 'width=600,height=500,scrollbars=yes');
+    }
+}
+
+function showWechatShare() {
+    // 微信分享弹窗：生成二维码
+    const modal = document.createElement('div');
+    modal.className = 'wechat-share-modal';
+    modal.innerHTML = `
+        <div class="wechat-share-content">
+            <div class="wechat-share-header">
+                <h3>分享到微信</h3>
+                <button class="wechat-share-close" onclick="this.closest('.wechat-share-modal').remove()">&times;</button>
+            </div>
+            <div class="wechat-share-body">
+                <p>打开微信扫一扫，分享到朋友圈</p>
+                <div class="wechat-qrcode" id="wechatShareQrcode">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(window.location.href)}" alt="微信分享二维码">
+                </div>
+            </div>
+        </div>
+    `;
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+    });
+    document.body.appendChild(modal);
 }

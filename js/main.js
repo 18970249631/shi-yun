@@ -262,7 +262,7 @@ function getUrlParam(param) {
 // 渲染精选文章
 function renderFeatured() {
     const grid = document.getElementById('featuredGrid');
-    const featured = articles.filter(a => a.featured);
+    const featured = articles.filter(a => a.featured && a.status === 'published');
     
     grid.innerHTML = featured.map((article, index) => `
         <div class="featured-card ${article.featuredType === 'main' ? 'featured-main' : ''} fade-in delay-${index + 1}" 
@@ -291,7 +291,7 @@ function renderFeatured() {
 // 渲染最新文章
 function renderLatest() {
     const list = document.getElementById('articleList');
-    const latest = articles.slice(0, 5);
+    const latest = articles.filter(a => a.status === 'published').slice(0, 5);
     
     list.innerHTML = latest.map((article, index) => `
         <div class="article-item fade-in delay-${index + 1}" onclick="goToArticle(${article.id})" 
@@ -335,10 +335,11 @@ function performSearch() {
     const query = document.getElementById('searchInput').value.trim();
     if (query) {
         // 实际项目中跳转到搜索结果页
-        const results = articles.filter(a => 
-            a.title.includes(query) || 
-            a.author.includes(query) || 
-            a.category.includes(query)
+        const results = articles.filter(a =>
+            a.status === 'published' &&
+            (a.title.includes(query) ||
+            a.author.includes(query) ||
+            a.category.includes(query))
         );
         
         if (results.length > 0) {
@@ -484,7 +485,7 @@ function renderAdPosition(position, containerId) {
 
     const adList = JSON.parse(localStorage.getItem('shiyun_ads') || '[]');
     const ad = adList.find(a => String(a.id) === String(adId));
-    if (!ad) {
+    if (!ad || ad.status !== 'published') {
         container.style.display = 'none';
         return;
     }

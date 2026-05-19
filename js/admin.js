@@ -2,6 +2,57 @@
  * 史韵 - 管理后台脚本 v2.0
  */
 
+// ==================== 角色权限系统 ====================
+
+const ROLE_ADMIN = 'admin';      // 总管理员
+const ROLE_EDITOR = 'editor';    // 普通管理员/编辑
+
+function getCurrentRole() {
+    return localStorage.getItem('shiyun_admin_role') || ROLE_ADMIN;
+}
+
+function setCurrentRole(role) {
+    localStorage.setItem('shiyun_admin_role', role);
+    updateRoleUI();
+    // 重新渲染当前页面内容
+    const currentSection = document.querySelector('.section[style*="display: block"]');
+    if (currentSection) {
+        const sectionId = currentSection.id;
+        if (sectionId === 'ads') renderAdList();
+        if (sectionId === 'articles') renderArticleTable();
+    }
+    showToast(`已切换为${role === ROLE_ADMIN ? '总管理员' : '普通管理员'}`, 'success');
+}
+
+function isAdmin() {
+    return getCurrentRole() === ROLE_ADMIN;
+}
+
+function updateRoleUI() {
+    const role = getCurrentRole();
+    const badge = document.getElementById('roleBadge');
+    const toggleBtn = document.getElementById('roleToggleBtn');
+    if (badge) {
+        badge.textContent = role === ROLE_ADMIN ? '总管理员' : '普通管理员';
+        badge.style.background = role === ROLE_ADMIN ? 'var(--color-vermilion)' : 'var(--color-gold)';
+    }
+    if (toggleBtn) {
+        toggleBtn.textContent = role === ROLE_ADMIN ? '切换为普通管理员' : '切换为总管理员';
+    }
+}
+
+const STATUS_LABELS = {
+    draft: { text: '草稿', color: '#6b6b6b', bg: '#f0f0f0' },
+    pending: { text: '待审核', color: '#e6a23c', bg: '#fdf6ec' },
+    published: { text: '已发布', color: '#67c23a', bg: '#f0f9eb' },
+    rejected: { text: '已拒绝', color: '#f56c6c', bg: '#fef0f0' }
+};
+
+function statusBadge(status) {
+    const s = STATUS_LABELS[status] || STATUS_LABELS.draft;
+    return `<span style="display:inline-block;padding:2px 10px;border-radius:4px;font-size:12px;font-weight:500;color:${s.color};background:${s.bg};">${s.text}</span>`;
+}
+
 // 文章数据管理
 let articles = [
     { id: 1, title: "烛之武退秦师", author: "左丘明", dynasty: "先秦", weight: 10, status: "published", pv: 2341, featured: true },
@@ -124,8 +175,11 @@ function switchTab(tabName) {
 // 渲染文章表格
 function renderArticleTable() {
     const tbody = document.getElementById('articleTableBody');
-    tbody.innerHTML = articles.map(article => `
-        <tr>
+    const admin = isAdmin();
+    tbody.innerHTML = articles.map(article => {
+        const canReview = admin && (article.status === 'pending' || article.status === 'draft');
+        return `
+        <tr style="opacity: ${article.status === 'rejected' ? '0.65' : '1'}">
             <td>
                 <div class="article-title-cell">
                     <div class="article-thumb"></div>
@@ -141,10 +195,18 @@ function renderArticleTable() {
                     ★ ${article.weight}
                 </span>
             </td>
-            <td><span class="status-badge ${article.status}">${article.status === 'published' ? '已发布' : article.status === 'draft' ? '草稿' : '定时'}</span></td>
+            <td>${statusBadge(article.status)}</td>
             <td>${article.pv.toLocaleString()}</td>
             <td>
                 <div class="action-btns">
+                    ${canReview ? `
+                        <button class="action-btn" onclick="approveArticle(${article.id})" title="通过" style="color: #67c23a;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                        </button>
+                        <button class="action-btn" onclick="rejectArticle(${article.id})" title="拒绝" style="color: #f56c6c;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    ` : ''}
                     <button class="action-btn" onclick="editArticle(${article.id})" title="编辑">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                     </button>
@@ -154,7 +216,11 @@ function renderArticleTable() {
                 </div>
             </td>
         </tr>
-    `).join('');
+    `}).join('');
+
+    // 角色提示
+    const hint = document.getElementById('articleRoleHint');
+    if (hint) hint.textContent = admin ? '' : '（普通管理员发布的文章需总管理员审核后才能展示）';
 }
 
 // 渲染热门文章
@@ -322,24 +388,27 @@ function saveArticle() {
     const dynasty = document.getElementById('articleDynasty').value;
     const weight = parseInt(document.getElementById('articleWeight').value);
     const content = document.getElementById('articleContent').value.trim();
-    
+
     if (!title || !author) {
         showToast('请填写标题和作者', 'error');
         return;
     }
-    
+
     if (editingArticleId) {
         const index = articles.findIndex(a => a.id === editingArticleId);
         if (index !== -1) {
+            // 编辑时保留原有状态
             articles[index] = { ...articles[index], title, author, dynasty, weight, content };
         }
         showToast('文章已更新', 'success');
     } else {
         const newId = Math.max(...articles.map(a => a.id)) + 1;
-        articles.push({ id: newId, title, author, dynasty, weight, status: 'draft', pv: 0, content });
-        showToast('文章已创建', 'success');
+        // 普通管理员创建 → 待审核；总管理员创建 → 直接发布
+        const newStatus = isAdmin() ? 'published' : 'pending';
+        articles.push({ id: newId, title, author, dynasty, weight, status: newStatus, pv: 0, content });
+        showToast(isAdmin() ? '文章已创建并发布' : '文章已提交，等待总管理员审核', 'success');
     }
-    
+
     renderArticleTable();
     renderHotArticles();
     closeArticleModal();
@@ -352,6 +421,34 @@ function deleteArticle(id) {
         renderHotArticles();
         showToast('文章已删除', 'success');
     }
+}
+
+function approveArticle(id) {
+    if (!isAdmin()) {
+        showToast('只有总管理员可以审核文章', 'error');
+        return;
+    }
+    const article = articles.find(a => a.id === id);
+    if (!article) return;
+    article.status = 'published';
+    article.reviewer = '总管理员';
+    article.reviewTime = new Date().toLocaleString('zh-CN');
+    renderArticleTable();
+    showToast(`文章「${article.title}」审核通过，已发布`, 'success');
+}
+
+function rejectArticle(id) {
+    if (!isAdmin()) {
+        showToast('只有总管理员可以审核文章', 'error');
+        return;
+    }
+    const article = articles.find(a => a.id === id);
+    if (!article) return;
+    article.status = 'rejected';
+    article.reviewer = '总管理员';
+    article.reviewTime = new Date().toLocaleString('zh-CN');
+    renderArticleTable();
+    showToast(`文章「${article.title}」已拒绝`, 'warning');
 }
 
 // 音频操作
@@ -954,7 +1051,12 @@ function initStatsModHistory() {
 
 // ==================== 广告栏设置功能 ====================
 
-let adList = JSON.parse(localStorage.getItem('shiyun_ads') || '[]');
+// 加载广告列表（兼容旧数据：补充默认状态）
+let adList = JSON.parse(localStorage.getItem('shiyun_ads') || '[]').map(ad => ({
+    ...ad,
+    status: ad.status || 'published',
+    uploader: ad.uploader || '系统导入'
+}));
 let currentAdUpload = null;
 
 // 广告类型切换
@@ -987,67 +1089,80 @@ function switchAdTab(type) {
 function renderAdList() {
     const staticList = document.getElementById('staticAdList');
     const dynamicList = document.getElementById('dynamicAdList');
+    const admin = isAdmin();
 
     const staticAds = adList.filter(ad => ad.type === 'static');
     const dynamicAds = adList.filter(ad => ad.type === 'dynamic');
 
-    // 渲染静态广告
-    if (staticList) {
-        if (staticAds.length === 0) {
-            staticList.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 40px;">暂无静态广告，点击右上角上传</p>';
-        } else {
-            staticList.innerHTML = staticAds.map(ad => `
-                <div class="ad-card" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; overflow: hidden;">
-                    <div style="aspect-ratio: 16/9; background: var(--bg-dark); display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                        <img src="${ad.preview}" style="width: 100%; height: 100%; object-fit: cover;" alt="${ad.name}">
+    // 过滤：总管理员看全部，编辑只看自己上传的
+    const filterByRole = (ads) => admin ? ads : ads.filter(ad => ad.uploader !== '总管理员');
+
+    // 渲染单条广告卡片（复用逻辑）
+    const renderAdCard = (ad, isStatic) => {
+        const isReviewable = !admin && (ad.status === 'draft' || ad.status === 'pending');
+        const canReview = admin && (ad.status === 'draft' || ad.status === 'pending');
+        return `
+            <div class="ad-card" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; opacity: ${ad.status === 'rejected' ? '0.65' : '1'};">
+                <div style="aspect-ratio: 16/9; background: var(--bg-dark); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;">
+                    ${isStatic ? `<img src="${ad.preview}" style="width: 100%; height: 100%; object-fit: cover;" alt="${ad.name}">` :
+                        ad.format === 'gif' ? `<img src="${ad.preview}" style="width: 100%; height: 100%; object-fit: cover;" alt="${ad.name}">` :
+                        ad.format.match(/mp4|webm|mov/) ? `<video src="${ad.preview}" style="width: 100%; height: 100%; object-fit: cover;" controls poster></video>` :
+                        `<div style="text-align: center; color: var(--text-secondary);">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                            <div style="margin-top: 8px; font-size: 14px;">PPT 文档</div>
+                        </div>`
+                    }
+                    <span style="position: absolute; top: 8px; left: 8px; ${ad.status === 'published' ? 'background:#67c23a;' : ad.status === 'pending' ? 'background:#e6a23c;' : ad.status === 'rejected' ? 'background:#f56c6c;' : 'background:#909399;'} color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px;">${ad.format.toUpperCase()}</span>
+                </div>
+                <div style="padding: 12px;">
+                    <div style="font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                        ${ad.name}
+                        ${statusBadge(ad.status)}
                     </div>
-                    <div style="padding: 12px;">
-                        <div style="font-weight: 500; margin-bottom: 4px;">${ad.name}</div>
-                        <div style="font-size: 12px; color: var(--text-secondary);">${ad.format.toUpperCase()} · ${ad.size}</div>
-                        <div style="display: flex; gap: 8px; margin-top: 8px;">
-                            <button class="btn btn-secondary" style="flex: 1; font-size: 12px; padding: 6px;" onclick="previewAd(${ad.id})">预览</button>
-                            <button class="btn btn-primary" style="flex: 1; font-size: 12px; padding: 6px;" onclick="deleteAd(${ad.id})">删除</button>
-                        </div>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">
+                        ${ad.format.toUpperCase()} · ${ad.size} · ${ad.uploader}
+                    </div>
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
+                        ${canReview ? `
+                            <button class="btn" style="flex: 1; font-size: 12px; padding: 5px 8px; background: #67c23a; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="approveAd(${ad.id})">通过</button>
+                            <button class="btn" style="flex: 1; font-size: 12px; padding: 5px 8px; background: #f56c6c; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="rejectAd(${ad.id})">拒绝</button>
+                        ` : ''}
+                        <button class="btn btn-secondary" style="flex: 1; font-size: 12px; padding: 5px 8px;" onclick="previewAd(${ad.id})">预览</button>
+                        <button class="btn btn-secondary" style="flex: 1; font-size: 12px; padding: 5px 8px;" onclick="deleteAd(${ad.id})">删除</button>
                     </div>
                 </div>
-            `).join('');
+            </div>
+        `;
+    };
+
+    // 渲染静态广告
+    if (staticList) {
+        const filtered = filterByRole(staticAds);
+        if (filtered.length === 0) {
+            staticList.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 40px;">暂无静态广告，点击右上角上传</p>';
+        } else {
+            staticList.innerHTML = filtered.map(ad => renderAdCard(ad, true)).join('');
         }
     }
 
     // 渲染动态广告
     if (dynamicList) {
-        if (dynamicAds.length === 0) {
+        const filtered = filterByRole(dynamicAds);
+        if (filtered.length === 0) {
             dynamicList.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 40px;">暂无动态广告，点击右上角上传</p>';
         } else {
-            dynamicList.innerHTML = dynamicAds.map(ad => `
-                <div class="ad-card" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; overflow: hidden;">
-                    <div style="aspect-ratio: 16/9; background: var(--bg-dark); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;">
-                        ${ad.format === 'gif' ?
-                            `<img src="${ad.preview}" style="width: 100%; height: 100%; object-fit: cover;" alt="${ad.name}">` :
-                            ad.format.match(/mp4|webm|mov/) ?
-                            `<video src="${ad.preview}" style="width: 100%; height: 100%; object-fit: cover;" controls poster></video>` :
-                            `<div style="text-align: center; color: var(--text-secondary);">
-                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                <div style="margin-top: 8px; font-size: 14px;">PPT 文档</div>
-                            </div>`
-                        }
-                        <span style="position: absolute; top: 8px; right: 8px; background: var(--primary); color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px;">${ad.format.toUpperCase()}</span>
-                    </div>
-                    <div style="padding: 12px;">
-                        <div style="font-weight: 500; margin-bottom: 4px;">${ad.name}</div>
-                        <div style="font-size: 12px; color: var(--text-secondary);">${ad.format.toUpperCase()} · ${ad.size}</div>
-                        <div style="display: flex; gap: 8px; margin-top: 8px;">
-                            <button class="btn btn-secondary" style="flex: 1; font-size: 12px; padding: 6px;" onclick="previewAd(${ad.id})">预览</button>
-                            <button class="btn btn-primary" style="flex: 1; font-size: 12px; padding: 6px;" onclick="deleteAd(${ad.id})">删除</button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+            dynamicList.innerHTML = filtered.map(ad => renderAdCard(ad, false)).join('');
         }
     }
 
-    // 更新广告位下拉选择
+    // 更新广告位下拉选择（只选已发布的）
     updateAdPositionOptions();
+
+    // 角色切换提示
+    const roleHint = document.getElementById('adRoleHint');
+    if (roleHint) {
+        roleHint.textContent = admin ? '（总管理员可审核广告）' : '（普通管理员上传的广告需等待总管理员审核）';
+    }
 }
 
 // 更新广告位选择选项
@@ -1185,6 +1300,8 @@ function saveAdUpload() {
         size: currentAdUpload.size,
         preview: currentAdUpload.data,
         link: link || '#',
+        status: 'draft',        // 新广告默认草稿状态
+        uploader: isAdmin() ? '总管理员' : '普通管理员',
         uploadTime: new Date().toLocaleString('zh-CN')
     };
 
@@ -1193,7 +1310,7 @@ function saveAdUpload() {
 
     renderAdList();
     closeAdUploadModal();
-    showToast('广告上传成功', 'success');
+    showToast('广告已保存为草稿', 'success');
 }
 
 // 预览广告
@@ -1220,6 +1337,38 @@ function deleteAd(id) {
         renderAdList();
         showToast('广告已删除', 'success');
     }
+}
+
+// 审核通过广告
+function approveAd(id) {
+    if (!isAdmin()) {
+        showToast('只有总管理员可以审核广告', 'error');
+        return;
+    }
+    const ad = adList.find(a => a.id === id);
+    if (!ad) return;
+    ad.status = 'published';
+    ad.reviewer = '总管理员';
+    ad.reviewTime = new Date().toLocaleString('zh-CN');
+    localStorage.setItem('shiyun_ads', JSON.stringify(adList));
+    renderAdList();
+    showToast(`广告「${ad.name}」审核通过，已发布`, 'success');
+}
+
+// 拒绝广告
+function rejectAd(id) {
+    if (!isAdmin()) {
+        showToast('只有总管理员可以审核广告', 'error');
+        return;
+    }
+    const ad = adList.find(a => a.id === id);
+    if (!ad) return;
+    ad.status = 'rejected';
+    ad.reviewer = '总管理员';
+    ad.reviewTime = new Date().toLocaleString('zh-CN');
+    localStorage.setItem('shiyun_ads', JSON.stringify(adList));
+    renderAdList();
+    showToast(`广告「${ad.name}」已拒绝`, 'warning');
 }
 
 // 保存广告位配置
