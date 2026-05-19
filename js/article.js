@@ -246,15 +246,18 @@ function getUrlParam(param) {
 function renderArticle() {
     const id = parseInt(getUrlParam('id'));
     const article = articles.find(a => a.id === id);
-    
+
     if (!article) {
         document.getElementById('articleContent').innerHTML = '<p>文章不存在</p>';
         return;
     }
-    
+
     // 更新页面标题
     document.title = `${article.title} | 史韵`;
-    
+
+    // 更新 SEO 元数据
+    updateArticleSEO(article);
+
     // 检查收藏状态
     updateBookmarkUI(article.id);
 
@@ -608,6 +611,80 @@ function renderArticleNav(currentId) {
     }
 
     container.innerHTML = html;
+}
+
+// ==================== SEO 元数据动态更新 ====================
+
+function updateArticleSEO(article) {
+    const siteUrl = 'https://shiyun.example.com';
+    const articleUrl = `${siteUrl}/article.html?id=${article.id}`;
+
+    // 更新 Open Graph
+    setMeta('og:title', `${article.title} | 史韵`);
+    setMeta('og:description', article.excerpt || article.title);
+    setMeta('og:url', articleUrl);
+    setMeta('og:image', article.cover || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&q=80');
+    setMeta('article:author', article.author);
+    setMeta('article:published_time', article.date);
+
+    // 更新 Twitter Card
+    setMeta('twitter:title', `${article.title} | 史韵`);
+    setMeta('twitter:description', article.excerpt || article.title);
+    setMeta('twitter:image', article.cover || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&q=80');
+
+    // 更新 Canonical URL
+    const canonical = document.querySelector('link[rel="canonical"]');
+    if (canonical) canonical.href = articleUrl;
+
+    // 更新页面 description
+    const descMeta = document.querySelector('meta[name="description"]');
+    if (descMeta) descMeta.content = article.excerpt || `${article.title} - ${article.author} ${article.dynasty}`;
+
+    // 注入 JSON-LD Article 结构化数据
+    injectArticleJsonLd(article, siteUrl, articleUrl);
+}
+
+function setMeta(property, content) {
+    const el = document.querySelector(`meta[property="${property}"]`) ||
+               document.querySelector(`meta[name="${property}"]`);
+    if (el) el.content = content;
+}
+
+function injectArticleJsonLd(article, siteUrl, articleUrl) {
+    // 移除旧的结构化数据
+    const old = document.getElementById('article-json-ld');
+    if (old) old.remove();
+
+    const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": article.title,
+        "description": article.excerpt || article.title,
+        "image": article.cover || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&q=80',
+        "author": {
+            "@type": "Person",
+            "name": article.author
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "史韵",
+            "url": siteUrl
+        },
+        "datePublished": article.date,
+        "dateModified": article.date,
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": articleUrl
+        },
+        "articleSection": article.category,
+        "keywords": `${article.category},${article.author},${article.dynasty},历史文学,文言文`
+    };
+
+    const script = document.createElement('script');
+    script.id = 'article-json-ld';
+    script.type = 'application/ld+json';
+    script.textContent = JSON.stringify(jsonLd);
+    document.head.appendChild(script);
 }
 
 // ==================== 社交分享功能 ====================
