@@ -507,76 +507,84 @@ function deleteAudio(id) {
 // Word 文档处理
 async function handleWordUpload(input) {
     if (!input.files || !input.files[0]) return;
-    
+
     const file = input.files[0];
+    if (!file.name.endsWith('.docx') && !file.name.endsWith('.doc')) {
+        showToast('请选择 Word 文档（.docx 或 .doc）', 'error');
+        return;
+    }
+
     showToast('正在解析 Word 文档...', 'warning');
-    
+
     try {
-        // 使用 mammoth.js 解析 Word 文档
         const reader = new FileReader();
         reader.onload = async (e) => {
             try {
-                // 动态加载 mammoth.js
-                if (typeof mammoth !== 'undefined') {
-                    const result = await mammoth.extractRawText({ arrayBuffer: e.target.result });
-                    displayExtractedContent(result.value);
+                if (typeof mammoth === 'undefined') {
+                    showToast('文档解析库未加载，请刷新页面后重试', 'error');
+                    return;
+                }
+                const result = await mammoth.extractRawText({ arrayBuffer: e.target.result });
+                if (result.value && result.value.trim()) {
+                    displayExtractedContent(result.value.trim());
+                    showToast('Word 文档解析成功', 'success');
                 } else {
-                    // 模拟提取
-                    const mockText = `【模拟提取的文字内容】
-
-本文章由 Word 文档自动识别生成。
-
-滕王阁序（节选）
-
-豫章故郡，洪都新府。星分翼轸，地接衡庐。襟三江而带五湖，控蛮荆而引瓯越。物华天宝，龙光射牛斗之墟；人杰地灵，徐孺下陈蕃之榻。
-
-雄州雾列，俊采星驰。台隍枕夷夏之交，宾主尽东南之美。都督阎公之雅望，棨戟遥临；宇文新州之懿范，襜帷暂驻。
-
-[系统提示：这是一个演示内容，实际使用时需要连接 mammoth.js 库]`;
-                    displayExtractedContent(mockText);
+                    showToast('文档内容为空或无法识别', 'warning');
                 }
             } catch (err) {
                 showToast('解析失败：' + err.message, 'error');
             }
         };
+        reader.onerror = () => showToast('文件读取失败', 'error');
         reader.readAsArrayBuffer(file);
     } catch (err) {
-        showToast('文件读取失败', 'error');
+        showToast('文件读取失败：' + err.message, 'error');
     }
 }
 
 // PDF 文档处理
 async function handlePdfUpload(input) {
     if (!input.files || !input.files[0]) return;
-    
+
     const file = input.files[0];
+    if (!file.name.endsWith('.pdf')) {
+        showToast('请选择 PDF 文档', 'error');
+        return;
+    }
+
     showToast('正在解析 PDF 文档...', 'warning');
-    
+
     try {
         const reader = new FileReader();
         reader.onload = async (e) => {
             try {
-                // 模拟 PDF 文字提取
-                // 实际使用时需要使用 pdf.js 库
-                const mockText = `【PDF 文档内容提取】
-
-文档名称：${file.name}
-
-兰亭集序
-
-永和九年，岁在癸丑，暮春之初，会于会稽山阴之兰亭，修禊事也。群贤毕至，少长咸集。此地有崇山峻岭，茂林修竹，又有清流激湍，映带左右，引以为流觞曲水，列坐其次。
-
-是日也，天朗气清，惠风和畅。仰观宇宙之大，俯察品类之盛，所以游目骋怀，足以极视听之娱，信可乐也。
-
-[系统提示：PDF 解析功能需要加载 pdf.js 库]`;
-                displayExtractedContent(mockText);
+                if (typeof pdfjsLib === 'undefined') {
+                    showToast('PDF 解析库未加载，请刷新页面后重试', 'error');
+                    return;
+                }
+                const typedArray = new Uint8Array(e.target.result);
+                const pdf = await pdfjsLib.getDocument({ data: typedArray }).promise;
+                let fullText = '';
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join('');
+                    fullText += pageText + '\n\n';
+                }
+                if (fullText.trim()) {
+                    displayExtractedContent(fullText.trim());
+                    showToast(`PDF 解析成功，共 ${pdf.numPages} 页`, 'success');
+                } else {
+                    showToast('PDF 内容为空或无法识别（可能是扫描版 PDF）', 'warning');
+                }
             } catch (err) {
                 showToast('PDF 解析失败：' + err.message, 'error');
             }
         };
+        reader.onerror = () => showToast('文件读取失败', 'error');
         reader.readAsArrayBuffer(file);
     } catch (err) {
-        showToast('文件读取失败', 'error');
+        showToast('文件读取失败：' + err.message, 'error');
     }
 }
 
@@ -586,7 +594,7 @@ function displayExtractedContent(text) {
     const textarea = document.getElementById('extractedText');
     textarea.value = text;
     container.style.display = 'block';
-    showToast('文档解析完成', 'success');
+    container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 // 从提取内容创建文章
