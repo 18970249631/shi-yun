@@ -61,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initChart();
     loadStats();
     initRewardManagement();
+    initStatsModHistory();
 });
 
 // 导航切换
@@ -692,4 +693,260 @@ function updateQrPreviews() {
 function saveRewardConfig() {
     localStorage.setItem('shiyun_reward_config', JSON.stringify(rewardConfig));
     showToast('收款码配置已保存', 'success');
+}
+
+// ==================== 数据修正功能 ====================
+
+let statsModHistory = [
+    { id: 1, time: '2026-05-17 10:25', type: 'PV', before: '12,000', after: '12,847', operator: '管理员', reason: '修正统计误差' },
+    { id: 2, time: '2026-05-16 15:40', type: 'UV', before: '3,100', after: '3,284', operator: '管理员', reason: '补充遗漏数据' },
+    { id: 3, time: '2026-05-15 09:20', type: '文章PV', before: '1,500', after: '1,892', operator: '管理员', reason: '《陈情表》浏览量修正' }
+];
+
+let selectedArticleForPv = null;
+
+// 修改 PV 模态框
+function openPvModifyModal() {
+    document.getElementById('newPvValue').value = siteStats.pv;
+    document.getElementById('pvModifyReason').value = '';
+    document.getElementById('pvModifyModal').classList.add('active');
+}
+
+function closePvModifyModal() {
+    document.getElementById('pvModifyModal').classList.remove('active');
+}
+
+function confirmPvModify() {
+    const newValue = parseInt(document.getElementById('newPvValue').value);
+    const reason = document.getElementById('pvModifyReason').value.trim();
+
+    if (isNaN(newValue) || newValue < 0) {
+        showToast('请输入有效的 PV 值', 'error');
+        return;
+    }
+
+    const oldValue = siteStats.pv;
+    siteStats.pv = newValue;
+
+    // 更新显示
+    const displayPV = document.getElementById('displayPV');
+    if (displayPV) displayPV.textContent = newValue.toLocaleString();
+    const totalPV = document.getElementById('totalPV');
+    if (totalPV) totalPV.textContent = newValue.toLocaleString();
+
+    // 记录历史
+    statsModHistory.unshift({
+        id: Date.now(),
+        time: new Date().toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(/\//g, '-'),
+        type: 'PV',
+        before: oldValue.toLocaleString(),
+        after: newValue.toLocaleString(),
+        operator: '管理员',
+        reason: reason || '手动修正'
+    });
+
+    renderStatsModHistory();
+    closePvModifyModal();
+    showToast('PV 数据已更新', 'success');
+}
+
+// 修改 UV 模态框
+function openUvModifyModal() {
+    document.getElementById('newUvValue').value = siteStats.uv;
+    document.getElementById('uvModifyReason').value = '';
+    document.getElementById('uvModifyModal').classList.add('active');
+}
+
+function closeUvModifyModal() {
+    document.getElementById('uvModifyModal').classList.remove('active');
+}
+
+function confirmUvModify() {
+    const newValue = parseInt(document.getElementById('newUvValue').value);
+    const reason = document.getElementById('uvModifyReason').value.trim();
+
+    if (isNaN(newValue) || newValue < 0) {
+        showToast('请输入有效的 UV 值', 'error');
+        return;
+    }
+
+    const oldValue = siteStats.uv;
+    siteStats.uv = newValue;
+
+    // 更新显示
+    const displayUV = document.getElementById('displayUV');
+    if (displayUV) displayUV.textContent = newValue.toLocaleString();
+    const totalUV = document.getElementById('totalUV');
+    if (totalUV) totalUV.textContent = newValue.toLocaleString();
+
+    // 记录历史
+    statsModHistory.unshift({
+        id: Date.now(),
+        time: new Date().toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(/\//g, '-'),
+        type: 'UV',
+        before: oldValue.toLocaleString(),
+        after: newValue.toLocaleString(),
+        operator: '管理员',
+        reason: reason || '手动修正'
+    });
+
+    renderStatsModHistory();
+    closeUvModifyModal();
+    showToast('UV 数据已更新', 'success');
+}
+
+// 单篇文章 PV 修改模态框
+function openArticlePvModal() {
+    const select = document.getElementById('articlePvSelect');
+    select.innerHTML = '<option value="">-- 选择文章 --</option>' +
+        articles.map(a => `<option value="${a.id}">${a.title}</option>`).join('');
+
+    document.getElementById('newArticlePvValue').value = '';
+    document.getElementById('articlePvModifyReason').value = '';
+    document.getElementById('articlePvInfo').style.display = 'none';
+    selectedArticleForPv = null;
+    document.getElementById('articlePvModal').classList.add('active');
+}
+
+function closeArticlePvModal() {
+    document.getElementById('articlePvModal').classList.remove('active');
+}
+
+function onArticlePvSelectChange() {
+    const articleId = parseInt(document.getElementById('articlePvSelect').value);
+    const article = articles.find(a => a.id === articleId);
+
+    if (article) {
+        selectedArticleForPv = article;
+        document.getElementById('currentArticlePv').textContent = article.pv.toLocaleString();
+        document.getElementById('currentArticleTitle').textContent = article.title;
+        document.getElementById('newArticlePvValue').value = article.pv;
+        document.getElementById('articlePvInfo').style.display = 'block';
+    } else {
+        selectedArticleForPv = null;
+        document.getElementById('articlePvInfo').style.display = 'none';
+    }
+}
+
+function confirmArticlePvModify() {
+    if (!selectedArticleForPv) {
+        showToast('请先选择文章', 'error');
+        return;
+    }
+
+    const newValue = parseInt(document.getElementById('newArticlePvValue').value);
+    const reason = document.getElementById('articlePvModifyReason').value.trim();
+
+    if (isNaN(newValue) || newValue < 0) {
+        showToast('请输入有效的 PV 值', 'error');
+        return;
+    }
+
+    const oldValue = selectedArticleForPv.pv;
+    selectedArticleForPv.pv = newValue;
+
+    // 更新文章表格显示
+    renderArticleTable();
+    renderHotArticles();
+
+    // 记录历史
+    statsModHistory.unshift({
+        id: Date.now(),
+        time: new Date().toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(/\//g, '-'),
+        type: '文章PV',
+        before: oldValue.toLocaleString(),
+        after: newValue.toLocaleString(),
+        operator: '管理员',
+        reason: reason || `${selectedArticleForPv.title} PV修正`
+    });
+
+    renderStatsModHistory();
+    closeArticlePvModal();
+    showToast(`《${selectedArticleForPv.title}》PV 已更新`, 'success');
+}
+
+// 渲染修改历史记录
+function renderStatsModHistory() {
+    const tbody = document.getElementById('statsModHistory');
+    if (!tbody) return;
+
+    if (statsModHistory.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">暂无修改记录</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = statsModHistory.map(record => {
+        const typeClass = record.type === 'PV' ? 'published' : record.type === 'UV' ? 'draft' : 'pending';
+        return `
+            <tr>
+                <td>${record.time}</td>
+                <td><span class="status-badge ${typeClass}">${record.type}</span></td>
+                <td>${record.before}</td>
+                <td style="color: var(--success);">${record.after}</td>
+                <td>${record.operator}</td>
+                <td>${record.reason}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// 批量操作
+function executeBatchOperation() {
+    const scope = document.getElementById('batchArticleScope').value;
+    const operation = document.getElementById('batchOperation').value;
+    const value = parseFloat(document.getElementById('batchValue').value);
+    const reason = document.getElementById('batchReason').value.trim();
+
+    if (isNaN(value) || value < 0) {
+        showToast('请输入有效的数值', 'error');
+        return;
+    }
+
+    let targetArticles = [...articles];
+    if (scope === 'published') {
+        targetArticles = targetArticles.filter(a => a.status === 'published');
+    } else if (scope === 'pending') {
+        targetArticles = targetArticles.filter(a => a.status === 'pending');
+    }
+
+    if (targetArticles.length === 0) {
+        showToast('没有符合条件的文章', 'error');
+        return;
+    }
+
+    if (!confirm(`确定要对 ${targetArticles.length} 篇文章执行批量操作吗？此操作不可逆！`)) {
+        return;
+    }
+
+    targetArticles.forEach(article => {
+        const oldPv = article.pv;
+        if (operation === 'multiply') {
+            article.pv = Math.round(article.pv * value);
+        } else if (operation === 'add') {
+            article.pv = Math.round(article.pv + value);
+        } else if (operation === 'set') {
+            article.pv = Math.round(value);
+        }
+
+        // 记录历史
+        statsModHistory.unshift({
+            id: Date.now() + article.id,
+            time: new Date().toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(/\//g, '-'),
+            type: '文章PV',
+            before: oldPv.toLocaleString(),
+            after: article.pv.toLocaleString(),
+            operator: '管理员',
+            reason: reason || `批量操作: ${operation}`
+        });
+    });
+
+    renderArticleTable();
+    renderHotArticles();
+    renderStatsModHistory();
+    showToast(`已成功修改 ${targetArticles.length} 篇文章的 PV`, 'success');
+}
+
+// 页面加载时初始化历史记录
+function initStatsModHistory() {
+    renderStatsModHistory();
 }
