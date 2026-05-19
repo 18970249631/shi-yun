@@ -62,6 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadStats();
     initRewardManagement();
     initStatsModHistory();
+    initAdManagement();
 });
 
 // 导航切换
@@ -949,4 +950,325 @@ function executeBatchOperation() {
 // 页面加载时初始化历史记录
 function initStatsModHistory() {
     renderStatsModHistory();
+}
+
+// ==================== 广告栏设置功能 ====================
+
+let adList = JSON.parse(localStorage.getItem('shiyun_ads') || '[]');
+let currentAdUpload = null;
+
+// 广告类型切换
+let currentAdTab = 'static';
+
+function switchAdTab(type) {
+    currentAdTab = type;
+    document.getElementById('adStaticContent').style.display = type === 'static' ? 'block' : 'none';
+    document.getElementById('adDynamicContent').style.display = type === 'dynamic' ? 'block' : 'none';
+
+    const staticBtn = document.getElementById('adTabStatic');
+    const dynamicBtn = document.getElementById('adTabDynamic');
+
+    if (type === 'static') {
+        staticBtn.style.background = 'var(--primary)';
+        staticBtn.style.color = 'white';
+        dynamicBtn.style.background = '';
+        dynamicBtn.style.color = '';
+    } else {
+        staticBtn.style.background = '';
+        staticBtn.style.color = '';
+        dynamicBtn.style.background = 'var(--primary)';
+        dynamicBtn.style.color = 'white';
+    }
+
+    renderAdList();
+}
+
+// 渲染广告列表
+function renderAdList() {
+    const staticList = document.getElementById('staticAdList');
+    const dynamicList = document.getElementById('dynamicAdList');
+
+    const staticAds = adList.filter(ad => ad.type === 'static');
+    const dynamicAds = adList.filter(ad => ad.type === 'dynamic');
+
+    // 渲染静态广告
+    if (staticList) {
+        if (staticAds.length === 0) {
+            staticList.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 40px;">暂无静态广告，点击右上角上传</p>';
+        } else {
+            staticList.innerHTML = staticAds.map(ad => `
+                <div class="ad-card" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; overflow: hidden;">
+                    <div style="aspect-ratio: 16/9; background: var(--bg-dark); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                        <img src="${ad.preview}" style="width: 100%; height: 100%; object-fit: cover;" alt="${ad.name}">
+                    </div>
+                    <div style="padding: 12px;">
+                        <div style="font-weight: 500; margin-bottom: 4px;">${ad.name}</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">${ad.format.toUpperCase()} · ${ad.size}</div>
+                        <div style="display: flex; gap: 8px; margin-top: 8px;">
+                            <button class="btn btn-secondary" style="flex: 1; font-size: 12px; padding: 6px;" onclick="previewAd(${ad.id})">预览</button>
+                            <button class="btn btn-primary" style="flex: 1; font-size: 12px; padding: 6px;" onclick="deleteAd(${ad.id})">删除</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+
+    // 渲染动态广告
+    if (dynamicList) {
+        if (dynamicAds.length === 0) {
+            dynamicList.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 40px;">暂无动态广告，点击右上角上传</p>';
+        } else {
+            dynamicList.innerHTML = dynamicAds.map(ad => `
+                <div class="ad-card" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; overflow: hidden;">
+                    <div style="aspect-ratio: 16/9; background: var(--bg-dark); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;">
+                        ${ad.format === 'gif' ?
+                            `<img src="${ad.preview}" style="width: 100%; height: 100%; object-fit: cover;" alt="${ad.name}">` :
+                            ad.format.match(/mp4|webm|mov/) ?
+                            `<video src="${ad.preview}" style="width: 100%; height: 100%; object-fit: cover;" controls poster></video>` :
+                            `<div style="text-align: center; color: var(--text-secondary);">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                <div style="margin-top: 8px; font-size: 14px;">PPT 文档</div>
+                            </div>`
+                        }
+                        <span style="position: absolute; top: 8px; right: 8px; background: var(--primary); color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px;">${ad.format.toUpperCase()}</span>
+                    </div>
+                    <div style="padding: 12px;">
+                        <div style="font-weight: 500; margin-bottom: 4px;">${ad.name}</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">${ad.format.toUpperCase()} · ${ad.size}</div>
+                        <div style="display: flex; gap: 8px; margin-top: 8px;">
+                            <button class="btn btn-secondary" style="flex: 1; font-size: 12px; padding: 6px;" onclick="previewAd(${ad.id})">预览</button>
+                            <button class="btn btn-primary" style="flex: 1; font-size: 12px; padding: 6px;" onclick="deleteAd(${ad.id})">删除</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+
+    // 更新广告位下拉选择
+    updateAdPositionOptions();
+}
+
+// 更新广告位选择选项
+function updateAdPositionOptions() {
+    const positions = ['adPositionTop', 'adPositionSidebar', 'adPositionFooter'];
+    positions.forEach(posId => {
+        const select = document.getElementById(posId);
+        if (select) {
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">-- 选择广告 --</option>' +
+                adList.map(ad => `<option value="${ad.id}">${ad.name} (${ad.type === 'static' ? '静态' : '动态'})</option>`).join('');
+            select.value = currentValue;
+        }
+    });
+}
+
+// 打开广告上传模态框
+function openAdUploadModal() {
+    document.getElementById('adName').value = '';
+    document.getElementById('adType').value = 'static';
+    document.getElementById('adLink').value = '';
+    document.getElementById('adPreview').style.display = 'none';
+    document.getElementById('adPreview').innerHTML = '';
+    currentAdUpload = null;
+    onAdTypeChange();
+    document.getElementById('adUploadModal').classList.add('active');
+}
+
+function closeAdUploadModal() {
+    document.getElementById('adUploadModal').classList.remove('active');
+    currentAdUpload = null;
+}
+
+// 广告类型改变时更新上传说明
+function onAdTypeChange() {
+    const type = document.getElementById('adType').value;
+    const desc = document.getElementById('adUploadDesc');
+    if (type === 'static') {
+        desc.textContent = '支持 JPG、PNG、WEBP、SVG、BMP 等图片格式';
+    } else {
+        desc.textContent = '支持 GIF、MP4、WEBM、MOV、PPT、PPTX 格式';
+    }
+}
+
+// 处理广告文件上传
+function handleAdFileUpload(input) {
+    if (!input.files || !input.files[0]) return;
+
+    const file = input.files[0];
+    const type = document.getElementById('adType').value;
+
+    // 验证文件类型
+    const staticTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml', 'image/bmp'];
+    const dynamicTypes = ['image/gif', 'video/mp4', 'video/webm', 'video/quicktime', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'];
+
+    const validTypes = type === 'static' ? staticTypes : dynamicTypes;
+    const validExtensions = type === 'static' ? ['jpg', 'jpeg', 'png', 'webp', 'svg', 'bmp'] : ['gif', 'mp4', 'webm', 'mov', 'ppt', 'pptx'];
+
+    const fileExt = file.name.split('.').pop().toLowerCase();
+
+    if (!validTypes.includes(file.type) && !validExtensions.includes(fileExt)) {
+        showToast(`不支持的文件格式，请上传${type === 'static' ? '图片' : 'GIF/视频/PPT'}文件`, 'error');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        currentAdUpload = {
+            name: file.name,
+            data: e.target.result,
+            format: fileExt,
+            size: formatFileSize(file.size),
+            type: type
+        };
+
+        // 显示预览
+        const preview = document.getElementById('adPreview');
+        preview.style.display = 'block';
+
+        if (type === 'static' || fileExt === 'gif') {
+            preview.innerHTML = `<img src="${e.target.result}" style="width: 100%; max-height: 200px; object-fit: contain;">`;
+        } else if (['mp4', 'webm', 'mov'].includes(fileExt)) {
+            preview.innerHTML = `<video src="${e.target.result}" style="width: 100%; max-height: 200px;" controls></video>`;
+        } else {
+            preview.innerHTML = `
+                <div style="padding: 40px; text-align: center; color: var(--text-secondary);">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    <div style="margin-top: 8px;">${file.name}</div>
+                    <div style="font-size: 12px; margin-top: 4px;">${formatFileSize(file.size)}</div>
+                </div>
+            `;
+        }
+
+        showToast('文件已选择', 'success');
+    };
+
+    if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
+        reader.readAsDataURL(file);
+    } else {
+        // PPT 文件读取为二进制并模拟预览
+        reader.readAsDataURL(file);
+    }
+}
+
+// 格式化文件大小
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// 保存广告上传
+function saveAdUpload() {
+    const name = document.getElementById('adName').value.trim();
+    const type = document.getElementById('adType').value;
+    const link = document.getElementById('adLink').value.trim();
+
+    if (!name) {
+        showToast('请输入广告名称', 'error');
+        return;
+    }
+
+    if (!currentAdUpload) {
+        showToast('请先上传广告文件', 'error');
+        return;
+    }
+
+    const newAd = {
+        id: Date.now(),
+        name: name,
+        type: type,
+        format: currentAdUpload.format,
+        size: currentAdUpload.size,
+        preview: currentAdUpload.data,
+        link: link || '#',
+        uploadTime: new Date().toLocaleString('zh-CN')
+    };
+
+    adList.push(newAd);
+    localStorage.setItem('shiyun_ads', JSON.stringify(adList));
+
+    renderAdList();
+    closeAdUploadModal();
+    showToast('广告上传成功', 'success');
+}
+
+// 预览广告
+function previewAd(id) {
+    const ad = adList.find(a => a.id === id);
+    if (!ad) return;
+
+    if (ad.format.match(/mp4|webm|mov/)) {
+        showToast('视频广告预览功能开发中', 'warning');
+    } else if (ad.format.match(/ppt|pptx/)) {
+        showToast('PPT广告预览功能开发中', 'warning');
+    } else {
+        // 图片/GIF 直接在新窗口预览
+        const win = window.open('', '_blank');
+        win.document.write(`<img src="${ad.preview}" style="max-width: 100%; max-height: 100vh;">`);
+    }
+}
+
+// 删除广告
+function deleteAd(id) {
+    if (confirm('确定要删除这个广告吗？')) {
+        adList = adList.filter(a => a.id !== id);
+        localStorage.setItem('shiyun_ads', JSON.stringify(adList));
+        renderAdList();
+        showToast('广告已删除', 'success');
+    }
+}
+
+// 保存广告位配置
+function saveAdPositions() {
+    const config = {
+        top: document.getElementById('adPositionTop').value,
+        sidebar: document.getElementById('adPositionSidebar').value,
+        footer: document.getElementById('adPositionFooter').value
+    };
+    localStorage.setItem('shiyun_ad_positions', JSON.stringify(config));
+    showToast('广告位配置已保存', 'success');
+}
+
+// 保存基础设置
+function saveBasicSettings() {
+    const settings = {
+        name: document.getElementById('siteName').value,
+        desc: document.getElementById('siteDesc').value,
+        icp: document.getElementById('siteIcp').value,
+        email: document.getElementById('siteEmail').value
+    };
+    localStorage.setItem('shiyun_basic_settings', JSON.stringify(settings));
+    showToast('基础设置已保存', 'success');
+}
+
+// 加载保存的设置
+function loadSavedSettings() {
+    // 加载广告位配置
+    const savedPositions = localStorage.getItem('shiyun_ad_positions');
+    if (savedPositions) {
+        const config = JSON.parse(savedPositions);
+        if (config.top) document.getElementById('adPositionTop').value = config.top;
+        if (config.sidebar) document.getElementById('adPositionSidebar').value = config.sidebar;
+        if (config.footer) document.getElementById('adPositionFooter').value = config.footer;
+    }
+
+    // 加载基础设置
+    const savedBasic = localStorage.getItem('shiyun_basic_settings');
+    if (savedBasic) {
+        const settings = JSON.parse(savedBasic);
+        if (settings.name) document.getElementById('siteName').value = settings.name;
+        if (settings.desc) document.getElementById('siteDesc').value = settings.desc;
+        if (settings.icp) document.getElementById('siteIcp').value = settings.icp;
+        if (settings.email) document.getElementById('siteEmail').value = settings.email;
+    }
+}
+
+// 页面加载时初始化广告
+function initAdManagement() {
+    renderAdList();
+    loadSavedSettings();
 }

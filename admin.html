@@ -2366,8 +2366,143 @@
                     </div>
                 </div>
             </div>
+
+            <!-- 系统设置 -->
+            <div class="tab-content" id="tab-settings">
+                <!-- 广告栏设置 -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>🎯 广告栏设置</h2>
+                        <button class="btn btn-primary" onclick="openAdUploadModal()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            上传广告
+                        </button>
+                    </div>
+                    <div class="panel-body">
+                        <!-- 广告类型标签页 -->
+                        <div style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
+                            <button class="btn btn-secondary" id="adTabStatic" onclick="switchAdTab('static')" style="background: var(--primary); color: white;">📷 静态广告</button>
+                            <button class="btn btn-secondary" id="adTabDynamic" onclick="switchAdTab('dynamic')">🎬 动态广告</button>
+                        </div>
+
+                        <!-- 静态广告 -->
+                        <div id="adStaticContent">
+                            <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 13px;">
+                                支持格式：JPG、JPEG、PNG、WEBP、SVG、BMP
+                            </p>
+                            <div id="staticAdList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
+                                <!-- 静态广告列表 -->
+                            </div>
+                        </div>
+
+                        <!-- 动态广告 -->
+                        <div id="adDynamicContent" style="display: none;">
+                            <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 13px;">
+                                支持格式：GIF、MP4、WEBM、MOV、PPT、PPTX
+                            </p>
+                            <div id="dynamicAdList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+                                <!-- 动态广告列表 -->
+                            </div>
+                        </div>
+
+                        <!-- 广告位置设置 -->
+                        <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border);">
+                            <h3 style="font-size: 16px; margin-bottom: 16px;">📍 广告位配置</h3>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+                                <div class="form-group">
+                                    <label class="form-label">首页顶部广告</label>
+                                    <select class="form-input" id="adPositionTop">
+                                        <option value="">-- 选择广告 --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">文章页侧边栏</label>
+                                    <select class="form-input" id="adPositionSidebar">
+                                        <option value="">-- 选择广告 --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">页脚广告</label>
+                                    <select class="form-input" id="adPositionFooter">
+                                        <option value="">-- 选择广告 --</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" onclick="saveAdPositions()" style="margin-top: 16px;">保存广告位配置</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 基础设置 -->
+                <div class="panel" style="margin-top: 24px;">
+                    <div class="panel-header">
+                        <h2>⚙️ 基础设置</h2>
+                    </div>
+                    <div class="panel-body">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                            <div class="form-group">
+                                <label class="form-label">网站名称</label>
+                                <input type="text" class="form-input" id="siteName" value="史韵" placeholder="输入网站名称">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">网站描述</label>
+                                <input type="text" class="form-input" id="siteDesc" value="精品历史文学平台" placeholder="输入网站描述">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">ICP备案号</label>
+                                <input type="text" class="form-input" id="siteIcp" placeholder="如：京ICP备12345678号">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">站长邮箱</label>
+                                <input type="email" class="form-input" id="siteEmail" value="vincentcao@foxmail.com" placeholder="输入联系邮箱">
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="saveBasicSettings()" style="margin-top: 16px;">保存基础设置</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
+
+    <!-- 广告上传模态框 -->
+    <div class="modal-overlay" id="adUploadModal">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 id="adUploadTitle">上传广告</h3>
+                <button class="modal-close" onclick="closeAdUploadModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">广告名称</label>
+                    <input type="text" class="form-input" id="adName" placeholder="输入广告名称">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">广告类型</label>
+                    <select class="form-input" id="adType" onchange="onAdTypeChange()">
+                        <option value="static">📷 静态广告（图片）</option>
+                        <option value="dynamic">🎬 动态广告（GIF/视频/PPT）</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">跳转链接</label>
+                    <input type="url" class="form-input" id="adLink" placeholder="https://example.com">
+                </div>
+                <div class="upload-zone" onclick="document.getElementById('adFile').click()" id="adUploadZone">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <h4>点击上传广告文件</h4>
+                    <p id="adUploadDesc">支持 JPG、PNG、WEBP 等图片格式</p>
+                </div>
+                <input type="file" id="adFile" style="display: none;" onchange="handleAdFileUpload(this)">
+                <div id="adPreview" style="display: none; margin-top: 16px; border-radius: 8px; overflow: hidden; background: var(--bg-dark);">
+                    <!-- 预览区域 -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAdUploadModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveAdUpload()">保存广告</button>
+            </div>
+        </div>
+    </div>
 
     <!-- 文章编辑模态框 -->
     <div class="modal-overlay" id="articleModal">
