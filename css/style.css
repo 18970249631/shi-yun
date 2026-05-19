@@ -777,11 +777,19 @@ button {
     align-items: center;
     justify-content: space-between;
     margin-top: 12px;
+    gap: 8px;
 }
 
 .article-author {
     font-size: 13px;
     color: var(--color-gray);
+}
+
+.article-pv {
+    font-size: 12px;
+    color: var(--color-gray);
+    flex: 1;
+    text-align: center;
 }
 
 .article-read {
@@ -1834,5 +1842,83 @@ button {
     
     .footer {
         background: #0d0d0d;
+    }
+}
+
+/* ==================== 广告位样式 ==================== */
+.ad-slot {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    text-align: center;
+    overflow: hidden;
+}
+
+.ad-slot img.ad-media,
+.ad-slot video.ad-media {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    display: block;
+    margin: 0 auto;
+}
+
+.ad-slot .ad-link {
+    display: inline-block;
+}
+
+.ad-slot .ad-placeholder {
+    background: var(--color-bg);
+    border: 2px dashed var(--color-border);
+    border-radius: 8px;
+    padding: 40px;
+    color: var(--color-gray);
+    font-size: 14px;
+}
+
+/* 顶部广告位 */
+#ad-slot-top {
+    padding-top: 16px;
+    padding-bottom: 8px;
+}
+
+/* 页脚广告位 */
+.ad-slot-footer {
+    padding-top: 24px;
+    padding-bottom: 16px;
+}
+
+/* 文章页侧边栏 */
+.article-sidebar {
+    display: none;
+}
+
+@media (min-width: 1024px) {
+    .article-sidebar {
+        display: block;
+        position: fixed;
+        right: 24px;
+        top: 120px;
+        width: 280px;
+        z-index: 10;
+    }
+
+    .article-sidebar .ad-slot {
+        padding: 0;
+        margin: 0;
+        width: 100%;
+    }
+
+    .article-sidebar img.ad-media,
+    .article-sidebar video.ad-media {
+        width: 100%;
+        border-radius: 8px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+}
+
+@media (max-width: 1300px) {
+    .article-sidebar {
+        display: none;
     }
 }

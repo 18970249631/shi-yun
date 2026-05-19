@@ -93,6 +93,7 @@ function renderCategory() {
                 <p class="article-excerpt">${article.excerpt}</p>
                 <div class="article-footer">
                     <span class="article-author">${article.author} · ${article.dynasty}</span>
+                    <span class="article-pv">👁 ${getArticlePv(article.id)}</span>
                     <span class="article-read">阅读全文 →</span>
                 </div>
             </div>
@@ -165,4 +166,68 @@ window.addEventListener('scroll', handleScroll);
 // 初始化
 document.addEventListener('DOMContentLoaded', () => {
     renderCategory();
+    initAdsDisplay();
+    renderFooterLinks();
 });
+
+// ==================== 前端广告展示功能 ====================
+
+function initAdsDisplay() {
+    renderAdPosition('top', 'ad-slot-top');
+    renderAdPosition('sidebar', 'ad-slot-sidebar');
+    renderAdPosition('footer', 'ad-slot-footer');
+}
+
+function renderAdPosition(position, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const positions = JSON.parse(localStorage.getItem('shiyun_ad_positions') || '{}');
+    const adId = positions[position];
+    if (!adId) {
+        container.style.display = 'none';
+        return;
+    }
+
+    const adList = JSON.parse(localStorage.getItem('shiyun_ads') || '[]');
+    const ad = adList.find(a => String(a.id) === String(adId));
+    if (!ad) {
+        container.style.display = 'none';
+        return;
+    }
+
+    container.style.display = '';
+    let adHtml = '';
+    const linkStart = ad.link && ad.link !== '#' ? `<a href="${ad.link}" target="_blank" class="ad-link">` : '';
+    const linkEnd = ad.link && ad.link !== '#' ? '</a>' : '';
+
+    if (ad.type === 'static' || ad.format === 'gif') {
+        adHtml = `${linkStart}<img src="${ad.preview}" alt="${ad.name}" class="ad-media">${linkEnd}`;
+    } else if (['mp4', 'webm', 'mov'].includes(ad.format)) {
+        adHtml = `${linkStart}<video src="${ad.preview}" class="ad-media" autoplay muted loop playsinline></video>${linkEnd}`;
+    } else {
+        adHtml = `${linkStart}<div class="ad-placeholder"><span>${ad.name}</span></div>${linkEnd}`;
+    }
+
+    container.innerHTML = adHtml;
+}
+
+// ==================== 页脚链接渲染 ====================
+
+function renderFooterLinks() {
+    const container = document.getElementById('footer-about-links');
+    if (!container) return;
+
+    const saved = localStorage.getItem('shiyun_footer_links');
+    if (!saved) return;
+
+    const links = JSON.parse(saved);
+    const html = links
+        .filter(link => link.name)
+        .map(link => `<a href="${link.url || '#'}">${link.name}</a>`)
+        .join('');
+
+    if (html) {
+        container.innerHTML = html;
+    }
+}

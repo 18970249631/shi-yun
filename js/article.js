@@ -220,6 +220,22 @@ const articles = [
     }
 ];
 
+// ==================== 文章 PV 浏览量 ====================
+
+// 获取文章 PV（浏览量）
+function getArticlePv(articleId) {
+    const pvData = JSON.parse(localStorage.getItem('shiyun_article_pv') || '{}');
+    return pvData[articleId] || 0;
+}
+
+// 增加文章 PV
+function incrementArticlePv(articleId) {
+    const pvData = JSON.parse(localStorage.getItem('shiyun_article_pv') || '{}');
+    pvData[articleId] = (pvData[articleId] || 0) + 1;
+    localStorage.setItem('shiyun_article_pv', JSON.stringify(pvData));
+    return pvData[articleId];
+}
+
 // 获取 URL 参数
 function getUrlParam(param) {
     const urlParams = new URLSearchParams(window.location.search);
@@ -241,11 +257,14 @@ function renderArticle() {
     
     // 检查收藏状态
     updateBookmarkUI(article.id);
-    
+
+    // 增加 PV
+    const pv = incrementArticlePv(article.id);
+
     // 渲染文章内容
     const paragraphs = article.content.split('\n\n').filter(p => p.trim());
     const contentHtml = paragraphs.map(para => `<p>${para}</p>`).join('');
-    
+
     document.getElementById('articleContent').innerHTML = `
         <div class="article-hero">
             <span class="article-category-tag">${article.category}</span>
@@ -258,6 +277,8 @@ function renderArticle() {
                 <span>${article.date}</span>
                 <span>·</span>
                 <span>${article.readTime}</span>
+                <span>·</span>
+                <span>👁 ${pv}</span>
             </div>
         </div>
         <div class="article-cover lazy-img" data-src="${article.cover}" style="background-image: url('${article.cover}')"></div>
@@ -285,6 +306,7 @@ function renderArticle() {
                     <div class="featured-meta">
                         <span>${a.author}</span>
                         <span>${a.readTime}</span>
+                        <span>👁 ${getArticlePv(a.id)}</span>
                     </div>
                 </div>
             </div>
@@ -414,6 +436,7 @@ function toggleMobileMenu() {
 document.addEventListener('DOMContentLoaded', () => {
     renderArticle();
     window.addEventListener('scroll', handleScroll);
+    renderFooterLinks();
 });
 
 // ESC 关闭搜索
@@ -448,7 +471,7 @@ function initRewardAmounts() {
         btn.addEventListener('click', () => {
             amounts.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            document.getElementById('customAmount').value = '';
+            document.getElementById('customAmount').value = btn.dataset.amount;
         });
     });
     
@@ -482,3 +505,65 @@ document.addEventListener('click', (e) => {
         closeRewardModal();
     }
 });
+
+// ==================== 前端广告展示功能 ====================
+
+function initAdsDisplay() {
+    renderAdPosition('top', 'ad-slot-top');
+    renderAdPosition('sidebar', 'ad-slot-sidebar');
+    renderAdPosition('footer', 'ad-slot-footer');
+}
+
+function renderAdPosition(position, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const positions = JSON.parse(localStorage.getItem('shiyun_ad_positions') || '{}');
+    const adId = positions[position];
+    if (!adId) {
+        container.style.display = 'none';
+        return;
+    }
+
+    const adList = JSON.parse(localStorage.getItem('shiyun_ads') || '[]');
+    const ad = adList.find(a => String(a.id) === String(adId));
+    if (!ad) {
+        container.style.display = 'none';
+        return;
+    }
+
+    container.style.display = '';
+    let adHtml = '';
+    const linkStart = ad.link && ad.link !== '#' ? `<a href="${ad.link}" target="_blank" class="ad-link">` : '';
+    const linkEnd = ad.link && ad.link !== '#' ? '</a>' : '';
+
+    if (ad.type === 'static' || ad.format === 'gif') {
+        adHtml = `${linkStart}<img src="${ad.preview}" alt="${ad.name}" class="ad-media">${linkEnd}`;
+    } else if (['mp4', 'webm', 'mov'].includes(ad.format)) {
+        adHtml = `${linkStart}<video src="${ad.preview}" class="ad-media" autoplay muted loop playsinline></video>${linkEnd}`;
+    } else {
+        adHtml = `${linkStart}<div class="ad-placeholder"><span>${ad.name}</span></div>${linkEnd}`;
+    }
+
+    container.innerHTML = adHtml;
+}
+
+// ==================== 页脚链接渲染 ====================
+
+function renderFooterLinks() {
+    const container = document.getElementById('footer-about-links');
+    if (!container) return;
+
+    const saved = localStorage.getItem('shiyun_footer_links');
+    if (!saved) return;
+
+    const links = JSON.parse(saved);
+    const html = links
+        .filter(link => link.name)
+        .map(link => `<a href="${link.url || '#'}">${link.name}</a>`)
+        .join('');
+
+    if (html) {
+        container.innerHTML = html;
+    }
+}

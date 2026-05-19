@@ -1245,6 +1245,26 @@ function saveBasicSettings() {
     showToast('基础设置已保存', 'success');
 }
 
+// 保存页脚链接
+function saveFooterLinks() {
+    const links = [
+        {
+            name: document.getElementById('footerLink1Name').value.trim(),
+            url: document.getElementById('footerLink1Url').value.trim()
+        },
+        {
+            name: document.getElementById('footerLink2Name').value.trim(),
+            url: document.getElementById('footerLink2Url').value.trim()
+        },
+        {
+            name: document.getElementById('footerLink3Name').value.trim(),
+            url: document.getElementById('footerLink3Url').value.trim()
+        }
+    ];
+    localStorage.setItem('shiyun_footer_links', JSON.stringify(links));
+    showToast('页脚链接已保存', 'success');
+}
+
 // 加载保存的设置
 function loadSavedSettings() {
     // 加载广告位配置
@@ -1264,6 +1284,24 @@ function loadSavedSettings() {
         if (settings.desc) document.getElementById('siteDesc').value = settings.desc;
         if (settings.icp) document.getElementById('siteIcp').value = settings.icp;
         if (settings.email) document.getElementById('siteEmail').value = settings.email;
+    }
+
+    // 加载页脚链接
+    const savedFooterLinks = localStorage.getItem('shiyun_footer_links');
+    if (savedFooterLinks) {
+        const links = JSON.parse(savedFooterLinks);
+        if (links[0]) {
+            if (links[0].name) document.getElementById('footerLink1Name').value = links[0].name;
+            if (links[0].url) document.getElementById('footerLink1Url').value = links[0].url;
+        }
+        if (links[1]) {
+            if (links[1].name) document.getElementById('footerLink2Name').value = links[1].name;
+            if (links[1].url) document.getElementById('footerLink2Url').value = links[1].url;
+        }
+        if (links[2]) {
+            if (links[2].name) document.getElementById('footerLink3Name').value = links[2].name;
+            if (links[2].url) document.getElementById('footerLink3Url').value = links[2].url;
+        }
     }
 }
 
